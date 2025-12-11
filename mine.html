@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ganling Zhou | Warm Tech Galaxy</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= Base Settings ================= */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #F8F4E3; background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); font-family: 'Gloria Hallelujah', cursive; cursor: none; }
+        
+        #intro-container { 
+            position: absolute; top: 48%; 
+            left: 50%; transform: translate(-50%, -50%); 
+            text-align: center; z-index: 10; pointer-events: none; user-select: none; 
+            width: 100%; max-width: 900px; 
+        }
+
+        .title-svg-container { 
+            width: 100%; height: auto; 
+            min-height: 250px; 
+            overflow: visible; 
+        }
+
+        /* ================= Typography ================= */
+        .watercolor-text-cn {
+            font-family: 'ZCOOL KuaiLe', cursive; 
+            text-anchor: middle; dominant-baseline: middle;
+            font-size: 130px; 
+            fill: #AECFE8; 
+            filter: url(#watercolor-filter);
+            opacity: 0.6; 
+            mix-blend-mode: multiply; 
+        }
+
+        .crayon-text-en { 
+            font-family: 'Gloria Hallelujah', cursive; text-anchor: middle; dominant-baseline: middle; 
+            font-size: 85px; letter-spacing: -2px; 
+        }
+        .crayon-outline-text { 
+            fill: none; stroke: #1a1a1a; stroke-width: 4px; stroke-linecap: round; stroke-linejoin: round; 
+            filter: url(#crayon-filter-stroke); opacity: 0.95; 
+        }
+        .crayon-fill-text { 
+            fill: #333; stroke: none; filter: url(#crayon-filter-fill); opacity: 0.9; 
+        }
+
+        .subtitle-text {
+            font-family: 'Gloria Hallelujah', cursive;
+            font-size: 24px;
+            fill: #C06C3D;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            font-weight: bold;
+            filter: url(#crayon-filter-small);
+        }
+
+        /* ================= Button ================= */
+        #enter-btn { 
+            margin-top: -15px; 
+            padding: 1rem 3rem; font-size: 1.2rem; background: #C06C3D; color: white; border: 4px solid #333; border-radius: 30px; font-family: 'Gloria Hallelujah', cursive; cursor: none; transform: rotate(-2deg); filter: url(#crayon-filter-small); pointer-events: auto; transition: transform 0.3s ease, background-color 0.3s ease; 
+        }
+        #enter-btn:hover { transform: rotate(1deg) scale(1.05); background-color: #D97D4A; }
+
+        /* ================= Audio Controls (Updated) ================= */
+        #audio-control {
+            position: fixed;
+            top: 30px; /* 稍微往下挪一点 */
+            right: 30px; /* 稍微往左挪一点 */
+            z-index: 100;
+            cursor: none; 
+            pointer-events: auto;
+            /* 初始透明度高一点，提示用户可以点 */
+            opacity: 0.8; 
+            transition: transform 0.2s ease, opacity 0.3s ease;
+        }
+        #audio-control:hover {
+            transform: scale(1.1); /* 悬停时放大 */
+            opacity: 1;
+        }
+        
+        .speaker-icon {
+            /* ✨ 增大图标尺寸到 70px ✨ */
+            width: 70px; 
+            height: 70px;
+            
+            fill: none;
+            stroke: #333;
+            stroke-width: 2.5; /* 线条稍微细一点点，适配大尺寸 */
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            filter: url(#crayon-filter-small);
+        }
+        
+        /* 状态控制 CSS */
+        .sound-wave { display: block; stroke: #C06C3D; transition: opacity 0.2s; }
+        .sound-off-line { display: none; stroke: #D988A8; stroke-width: 3; transition: opacity 0.2s; }
+        
+        /* 当加上 .muted 类时 */
+        #audio-control.muted .sound-wave { display: none; }
+        #audio-control.muted .sound-off-line { display: block; }
+
+        /* ================= Visuals ================= */
+        .star-element { position: absolute; top: 0; left: 0; will-change: transform; z-index: 1; pointer-events: none; }
+        .star-svg-container { width: 100%; height: 100%; overflow: visible; transform: skew(0deg) scale(1, 1); }
+        .star-outline { fill: none; stroke: #222; stroke-width: 16px; stroke-linecap: round; stroke-linejoin: round; filter: url(#crayon-filter-stroke); }
+        .star-fill { fill: var(--star-color); stroke: none; transform: scale(0.92); transform-origin: center; filter: url(#crayon-filter-fill); opacity: 0.85; }
+        #cursor-nebula { position: fixed; top: 0; left: 0; width: 100px; height: 100px; pointer-events: none; z-index: 100; transform: translate(-50%, -50%); opacity: 0.9; }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; filter: url(#crayon-filter-fill); }
+        #svg-filters { position: absolute; width: 0; height: 0; }
+        
+        @media (max-width: 768px) { 
+            .crayon-text-en { font-size: 50px; } 
+            .watercolor-text-cn { font-size: 80px; } 
+            .title-svg-container { min-height: 200px; } 
+            .speaker-icon { width: 50px; height: 50px; } /* 手机上稍微小一点 */
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop preload="auto">
+        <source src="background_music_.wav" type="audio/wav">
+    </audio>
+    <audio id="sfx-star" preload="auto">
+        <source src="star_effect.wav" type="audio/wav">
+    </audio>
+
+    <svg id="svg-filters">
+        <defs>
+            <filter id="crayon-filter-stroke">
+                <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" />
+            </filter>
+            <filter id="crayon-filter-fill">
+                <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
+            </filter>
+            <filter id="watercolor-filter">
+                <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="5" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" />
+                <feGaussianBlur stdDeviation="2.5" />
+            </filter>
+            <filter id="crayon-filter-small">
+                <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div id="cursor-nebula">
+        <div class="nebula-blob" style="width: 100%; height: 100%; background: #C06C3D; top:0; left:0;"></div>
+        <div class="nebula-blob" style="width: 80%; height: 80%; background: #D988A8; top:-10%; left:20%;"></div>
+        <div class="nebula-blob" style="width: 70%; height: 70%; background: #E6C77F; top:20%; left:-10%;"></div>
+    </div>
+
+    <div id="audio-control" class="muted" onclick="toggleAudioManual()">
+        <svg class="speaker-icon" viewBox="0 0 50 50">
+            <path d="M15 18 L25 18 L35 10 L35 40 L25 32 L15 32 Z" />
+            <path class="sound-wave" d="M40 18 Q45 25 40 32" />
+            <path class="sound-wave" d="M44 14 Q52 25 44 36" />
+            <line class="sound-off-line" x1="10" y1="10" x2="40" y2="40" />
+        </svg>
+    </div>
+
+    <div id="intro-container">
+        <svg class="title-svg-container" viewBox="0 0 800 250" preserveAspectRatio="xMidYMid meet">
+            <text x="50%" y="50%" class="watercolor-text-cn">周干龄</text>
+            <text x="50%" y="50%" class="crayon-text-en crayon-fill-text">GANLING ZHOU</text>
+            <text x="50%" y="50%" class="crayon-text-en crayon-outline-text">GANLING ZHOU</text>
+            <text x="50%" y="82%" class="subtitle-text">Warm Tech / Audio / Code & Chaos</text>
+        </svg>
+        
+        <button id="enter-btn" onclick="goToPortfolio()">Enter My World</button>
+    </div>
+
+    <script>
+        // ================= 简化后的音频逻辑 =================
+        const bgMusic = document.getElementById('bg-music');
+        const sfxStar = document.getElementById('sfx-star');
+        const audioControl = document.getElementById('audio-control');
+        const enterBtn = document.getElementById('enter-btn');
+        
+        let isMusicOn = false; // 默认：关
+        let fadeInterval = null;
+        const TARGET_VOL = 0.5;
+
+        // 1. 初始化音量
+        bgMusic.volume = 0;
+
+        // 2. 点击喇叭时的开关逻辑 (这是开启声音的唯一入口)
+        function toggleAudioManual() {
+            if (!isMusicOn) {
+                // === 开启音乐 ===
+                isMusicOn = true;
+                bgMusic.play().then(() => {
+                    // Fade In
+                    if (fadeInterval) clearInterval(fadeInterval);
+                    fadeInterval = setInterval(() => {
+                        if (bgMusic.volume < TARGET_VOL) {
+                            let nextVol = bgMusic.volume + 0.02;
+                            bgMusic.volume = Math.min(nextVol, TARGET_VOL);
+                        } else {
+                            clearInterval(fadeInterval);
+                        }
+                    }, 50);
+                    
+                    audioControl.classList.remove('muted');
+                });
+            } else {
+                // === 关闭音乐 ===
+                isMusicOn = false;
+                
+                // Fade Out
+                if (fadeInterval) clearInterval(fadeInterval);
+                fadeInterval = setInterval(() => {
+                    if (bgMusic.volume > 0.02) {
+                        bgMusic.volume -= 0.05;
+                    } else {
+                        bgMusic.volume = 0;
+                        bgMusic.pause();
+                        clearInterval(fadeInterval);
+                    }
+                }, 50);
+
+                audioControl.classList.add('muted');
+            }
+        }
+
+        // 3. 按钮音效 (仅当音乐开启时播放)
+        enterBtn.addEventListener('mouseenter', () => {
+            if (isMusicOn) {
+                sfxStar.currentTime = 0;
+                sfxStar.volume = 0.6;
+                sfxStar.play().catch(e => {});
+            }
+        });
+        
+        function goToPortfolio() {
+            if (isMusicOn) {
+                // 离开页面前快速淡出
+                if (fadeInterval) clearInterval(fadeInterval);
+                let vol = bgMusic.volume;
+                let outInterval = setInterval(() => {
+                    if (vol > 0.05) {
+                        vol -= 0.1;
+                        bgMusic.volume = vol;
+                    } else {
+                        bgMusic.volume = 0;
+                        clearInterval(outInterval);
+                    }
+                }, 50);
+            }
+            alert('Going to Portfolio...'); 
+        }
+
+
+        // ================= 视觉逻辑 (不变) =================
+        const NUM_STARS = 15;        
+        const MOUSE_REPEL_DIST = 220;
+        const MOUSE_FORCE = 0.6;      
+        const MAX_SPEED = 1.5;        
+        const DAMPING = 0.98;         
+
+        const colors = ['#FF6B6B', '#FFA07A', '#FFD93D', '#6BCB77', '#4D96FF', '#D988A8', '#9B59B6'];
+        const starPath = "M 250 20 L 320 180 L 490 180 L 350 280 L 400 450 L 250 350 L 100 450 L 150 280 L 10 180 L 180 180 Z";
+
+        const cursor = document.getElementById('cursor-nebula');
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+        });
+
+        class Star {
+            constructor(spawnX, spawnY) {
+                this.element = document.createElement('div');
+                this.element.classList.add('star-element');
+                this.size = Math.random() * 120 + 100; 
+                this.element.style.width = `${this.size}px`;
+                this.element.style.height = `${this.size}px`;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                this.element.style.setProperty('--star-color', color);
+                const skewX = (Math.random() - 0.5) * 40; 
+                const skewY = (Math.random() - 0.5) * 40;
+                const scaleX = 0.8 + Math.random() * 0.4; 
+                const scaleY = 0.8 + Math.random() * 0.4;
+
+                this.element.innerHTML = `
+                    <svg class="star-svg-container" viewBox="0 0 500 500" 
+                         style="transform: skew(${skewX}deg, ${skewY}deg) scale(${scaleX}, ${scaleY});">
+                        <path class="star-fill" d="${starPath}" />
+                        <path class="star-outline" d="${starPath}" />
+                    </svg>
+                `;
+                document.body.appendChild(this.element);
+
+                if (spawnX !== undefined && spawnY !== undefined) {
+                    this.x = spawnX - this.size / 2;
+                    this.y = spawnY - this.size / 2;
+                    this.vx = (Math.random() - 0.5) * MAX_SPEED * 3;
+                    this.vy = (Math.random() - 0.5) * MAX_SPEED * 3;
+                } else {
+                    this.x = Math.random() * (window.innerWidth - this.size);
+                    this.y = Math.random() * (window.innerHeight - this.size);
+                    this.vx = (Math.random() - 0.5) * MAX_SPEED;
+                    this.vy = (Math.random() - 0.5) * MAX_SPEED;
+                }
+
+                this.rotation = Math.random() * 360;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.3;
+            }
+
+            update() {
+                const centerX = this.x + this.size / 2;
+                const centerY = this.y + this.size / 2;
+                const dx = centerX - mouseX;
+                const dy = centerY - mouseY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < MOUSE_REPEL_DIST) {
+                    const forceX = dx / distance;
+                    const forceY = dy / distance;
+                    const strength = (MOUSE_REPEL_DIST - distance) / MOUSE_REPEL_DIST;
+                    this.vx += forceX * strength * MOUSE_FORCE * 6;
+                    this.vy += forceY * strength * MOUSE_FORCE * 6;
+                }
+                this.vx *= DAMPING; 
+                this.vy *= DAMPING;
+                if (Math.abs(this.vx) < 0.3) this.vx += (Math.random() - 0.5) * 0.1;
+                if (Math.abs(this.vy) < 0.3) this.vy += (Math.random() - 0.5) * 0.1;
+                this.x += this.vx;
+                this.y += this.vy;
+                this.rotation += this.rotationSpeed;
+                
+                const screenW = window.innerWidth;
+                const screenH = window.innerHeight;
+                if (this.x <= -50) { this.x = -50; this.vx *= -1; }
+                else if (this.x + this.size >= screenW + 50) { this.x = screenW - this.size + 50; this.vx *= -1; }
+                if (this.y <= -50) { this.y = -50; this.vy *= -1; }
+                else if (this.y + this.size >= screenH + 50) { this.y = screenH - this.size + 50; this.vy *= -1; }
+                this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
+            }
+        }
+
+        const stars = [];
+        for (let i = 0; i < NUM_STARS; i++) {
+            stars.push(new Star());
+        }
+
+        enterBtn.addEventListener('mouseenter', () => {
+            const rect = enterBtn.getBoundingClientRect();
+            const btnCenterX = rect.left + rect.width / 2;
+            const btnCenterY = rect.top + rect.height / 2;
+            const offsetX = (Math.random() - 0.5) * 50;
+            const offsetY = (Math.random() - 0.5) * 50;
+            stars.push(new Star(btnCenterX + offsetX, btnCenterY + offsetY));
+        });
+
+        function animate() {
+            stars.forEach(star => star.update());
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+
+        window.addEventListener('resize', () => {
+            stars.forEach(star => {
+                if (star.x > window.innerWidth) star.x = window.innerWidth - star.size;
+                if (star.y > window.innerHeight) star.y = window.innerHeight - star.size;
+            });
+        });
+    </script>
+</body>
+</html>
