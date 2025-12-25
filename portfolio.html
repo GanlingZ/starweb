@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projects | Ganling Zhou</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= Base Settings (Same as Index) ================= */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #F8F4E3; background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); font-family: 'Gloria Hallelujah', cursive; cursor: none; }
+        
+        /* ================= Portfolio Specific Layout ================= */
+        #main-scroll-container {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            overflow-y: auto;
+            overflow-x: hidden;
+            z-index: 10;
+            padding-top: 100px; /* Space for header */
+            padding-bottom: 50px;
+            box-sizing: border-box;
+            
+            /* Hide Scrollbar visually but keep functionality */
+            scrollbar-width: none; 
+            -ms-overflow-style: none;
+        }
+        #main-scroll-container::-webkit-scrollbar { display: none; }
+
+        .header-title {
+            text-align: center;
+            margin-bottom: 40px;
+            pointer-events: none;
+        }
+
+        .project-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+
+        /* ================= Project Card Style ================= */
+        .project-card {
+            position: relative;
+            background: rgba(255, 255, 255, 0.6);
+            border: 3px solid #333;
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px; /* Hand-drawn shape */
+            padding: 25px;
+            transition: transform 0.3s ease, background 0.3s;
+            cursor: none; /* We keep custom cursor */
+            pointer-events: auto;
+            /* Apply a subtle wobble effect */
+            filter: url(#crayon-filter-card); 
+        }
+
+        .project-card:hover {
+            transform: scale(1.02) rotate(-1deg);
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 15;
+        }
+
+        .card-image-box {
+            width: 100%;
+            height: 180px;
+            background: #e0e0e0;
+            border: 2px solid #333;
+            margin-bottom: 15px;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .card-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: sepia(0.3) contrast(1.1); /* Old photo look */
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: #C06C3D;
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+
+        .card-desc {
+            font-size: 1rem;
+            color: #444;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .card-tags {
+            font-size: 0.85rem;
+            color: #666;
+            font-style: italic;
+        }
+
+        .card-link-btn {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 8px 20px;
+            background: #333;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 20px;
+            transform: rotate(-1deg);
+            transition: 0.2s;
+        }
+        .card-link-btn:hover {
+            background: #C06C3D;
+            transform: rotate(1deg);
+        }
+
+        /* ================= Navigation ================= */
+        #nav-controls {
+            position: fixed;
+            top: 30px;
+            width: 100%;
+            padding: 0 40px;
+            box-sizing: border-box;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none; /* Let clicks pass through container */
+        }
+
+        .nav-btn {
+            pointer-events: auto;
+            cursor: none;
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.8; transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-btn:hover { transform: scale(1.1); opacity: 1; }
+        
+        .icon-svg {
+            width: 100%; height: 100%;
+            fill: none; stroke: #333; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round;
+            filter: url(#crayon-filter-small);
+        }
+
+        /* Reusing Typography from Index */
+        .crayon-text-en { font-family: 'Gloria Hallelujah', cursive; }
+        .crayon-outline-text { fill: none; stroke: #1a1a1a; stroke-width: 3px; filter: url(#crayon-filter-stroke); opacity: 0.8; }
+        .crayon-fill-text { fill: #333; stroke: none; filter: url(#crayon-filter-fill); opacity: 0.9; }
+
+        /* ================= Visuals (Stars/Cursor) ================= */
+        .star-element { position: absolute; top: 0; left: 0; z-index: 1; pointer-events: none; }
+        .star-svg-container { width: 100%; height: 100%; overflow: visible; }
+        .star-outline { fill: none; stroke: #222; stroke-width: 16px; stroke-linecap: round; stroke-linejoin: round; filter: url(#crayon-filter-stroke); }
+        .star-fill { fill: var(--star-color); stroke: none; transform: scale(0.92); transform-origin: center; filter: url(#crayon-filter-fill); opacity: 0.85; }
+        
+        #cursor-nebula { position: fixed; top: 0; left: 0; width: 100px; height: 100px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); opacity: 0.9; }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; filter: url(#crayon-filter-fill); }
+        #svg-filters { position: absolute; width: 0; height: 0; }
+
+        /* Audio Control State */
+        .sound-wave { display: block; stroke: #C06C3D; }
+        .sound-off-line { display: none; stroke: #D988A8; stroke-width: 3; }
+        .muted .sound-wave { display: none; }
+        .muted .sound-off-line { display: block; }
+
+        @media (max-width: 768px) {
+            .project-grid { grid-template-columns: 1fr; padding: 0 20px; }
+            #nav-controls { padding: 0 20px; }
+            .header-svg { height: 120px; }
+        }
+    </style>
+</head>
+<body>
+
+    <audio id="bg-music" loop preload="auto">
+        <source src="background_music_.wav" type="audio/wav">
+    </audio>
+    <audio id="sfx-star" preload="auto">
+        <source src="star_effect.wav" type="audio/wav">
+    </audio>
+
+    <svg id="svg-filters">
+        <defs>
+            <filter id="crayon-filter-stroke">
+                <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" />
+            </filter>
+            <filter id="crayon-filter-fill">
+                <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
+            </filter>
+            <filter id="crayon-filter-small">
+                <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
+            </filter>
+            <filter id="crayon-filter-card">
+                <feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div id="cursor-nebula">
+        <div class="nebula-blob" style="width: 100%; height: 100%; background: #C06C3D; top:0; left:0;"></div>
+        <div class="nebula-blob" style="width: 80%; height: 80%; background: #D988A8; top:-10%; left:20%;"></div>
+        <div class="nebula-blob" style="width: 70%; height: 70%; background: #E6C77F; top:20%; left:-10%;"></div>
+    </div>
+
+    <div id="nav-controls">
+        <div class="nav-btn" onclick="goBackHome()">
+            <svg class="icon-svg" viewBox="0 0 50 50">
+                <path d="M30 10 L15 25 L30 40" />
+                <path d="M15 25 L45 25" />
+            </svg>
+        </div>
+
+        <div id="audio-control" class="nav-btn muted" onclick="toggleAudioManual()">
+            <svg class="icon-svg" viewBox="0 0 50 50">
+                <path d="M15 18 L25 18 L35 10 L35 40 L25 32 L15 32 Z" />
+                <path class="sound-wave" d="M40 18 Q45 25 40 32" />
+                <path class="sound-wave" d="M44 14 Q52 25 44 36" />
+                <line class="sound-off-line" x1="10" y1="10" x2="40" y2="40" />
+            </svg>
+        </div>
+    </div>
+
+    <div id="main-scroll-container">
+        
+        <div class="header-title">
+            <svg class="header-svg" viewBox="0 0 600 120" style="width: 100%; max-width: 600px; height: 120px; overflow: visible;">
+                <text x="50%" y="60%" text-anchor="middle" font-size="60" class="crayon-text-en crayon-fill-text">MY CREATIONS</text>
+                <text x="50%" y="60%" text-anchor="middle" font-size="60" class="crayon-text-en crayon-outline-text">MY CREATIONS</text>
+            </svg>
+        </div>
+
+        <div class="project-grid" id="project-grid">
+            </div>
+        
+        <div style="height: 100px;"></div> </div>
+
+    <script>
+        // ================= PROJECT DATA CONFIGURATION =================
+        // Add your projects here!
+        const projects = [
+            {
+                title: "Gummy Bear Interactive",
+                description: "Experience the physical-to-digital bridge! Drag the gummy bears onto the machine to activate different LED modes in real-time.",
+                tags: "#Interactive #Hardware #Web",
+                image: "machine_red.jpg", // This will use the photo as the card thumbnail!
+                link: "gummy-machine.html"
+            },
+            {
+                title: "Chill in the Rain",
+                description: "The particle system running on this very website. Simulating gravitational pull and soft-body nebula blobs.",
+                tags: "#MaxMSP #SoundSpatialization #Machinelearning",
+                image: "chillcover.jpg",
+                link: "chillrain.html"
+            },
+            {
+                title: "Chaos & Order",
+                description: "A generative art piece using Perlin noise and recursive algorithms to create crayon-style textures digitally.",
+                tags: "#GenerativeArt #p5js",
+                image: "",
+                link: "#"
+            },
+            {
+                title: "Interactive Story",
+                description: "A non-linear storytelling engine where the user's cursor movements determine the emotional outcome.",
+                tags: "#Narrative #Web",
+                image: "",
+                link: "#"
+            }
+        ];
+
+        // ================= Render Projects =================
+        const grid = document.getElementById('project-grid');
+
+        projects.forEach(proj => {
+            const card = document.createElement('div');
+            card.classList.add('project-card');
+
+            // Random slight rotation for hand-drawn feel
+            const rot = (Math.random() - 0.5) * 2; 
+            card.style.transform = `rotate(${rot}deg)`;
+
+            // Use placeholder color if no image
+            const bgCol = ['#C06C3D', '#D988A8', '#E6C77F', '#AECFE8'][Math.floor(Math.random()*4)];
+            const imgHTML = proj.image 
+                ? `<img src="${proj.image}" alt="${proj.title}">` 
+                : `<div style="width:100%; height:100%; background:${bgCol}; display:flex; align-items:center; justify-content:center; opacity:0.5; font-size:40px;">★</div>`;
+
+            card.innerHTML = `
+                <div class="card-image-box">${imgHTML}</div>
+                <h3 class="card-title">${proj.title}</h3>
+                <p class="card-desc">${proj.description}</p>
+                <div class="card-tags">${proj.tags}</div>
+                <a href="${proj.link}" class="card-link-btn" onmouseenter="playHoverSound()">View Project</a>
+            `;
+            grid.appendChild(card);
+        });
+
+
+        // ================= Audio Logic (Consistent) =================
+        const bgMusic = document.getElementById('bg-music');
+        const sfxStar = document.getElementById('sfx-star');
+        const audioControl = document.getElementById('audio-control');
+        
+        let isMusicOn = false;
+        let fadeInterval = null;
+        const TARGET_VOL = 0.5;
+
+        bgMusic.volume = 0;
+
+        function toggleAudioManual() {
+            if (!isMusicOn) {
+                isMusicOn = true;
+                bgMusic.play().then(() => {
+                    if (fadeInterval) clearInterval(fadeInterval);
+                    fadeInterval = setInterval(() => {
+                        if (bgMusic.volume < TARGET_VOL) {
+                            bgMusic.volume = Math.min(bgMusic.volume + 0.02, TARGET_VOL);
+                        } else {
+                            clearInterval(fadeInterval);
+                        }
+                    }, 50);
+                    audioControl.classList.remove('muted');
+                });
+            } else {
+                isMusicOn = false;
+                if (fadeInterval) clearInterval(fadeInterval);
+                fadeInterval = setInterval(() => {
+                    if (bgMusic.volume > 0.02) {
+                        bgMusic.volume -= 0.05;
+                    } else {
+                        bgMusic.volume = 0;
+                        bgMusic.pause();
+                        clearInterval(fadeInterval);
+                    }
+                }, 50);
+                audioControl.classList.add('muted');
+            }
+        }
+
+        function playHoverSound() {
+            if (isMusicOn) {
+                sfxStar.currentTime = 0;
+                sfxStar.volume = 0.4;
+                sfxStar.play().catch(e => {});
+            }
+        }
+
+        function goBackHome() {
+             // Optional: Add fade out logic here if desired
+             window.location.href = 'index.html';
+        }
+
+        // ================= Visuals (Nebula & Stars) =================
+        // (Simplified Star logic: Stars float in background, not repelled by mouse on this page to avoid distraction)
+        const NUM_STARS = 10;        
+        const colors = ['#FF6B6B', '#FFA07A', '#FFD93D', '#6BCB77', '#4D96FF', '#D988A8', '#9B59B6'];
+        const starPath = "M 250 20 L 320 180 L 490 180 L 350 280 L 400 450 L 250 350 L 100 450 L 150 280 L 10 180 L 180 180 Z";
+        const cursor = document.getElementById('cursor-nebula');
+
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+
+        class Star {
+            constructor() {
+                this.element = document.createElement('div');
+                this.element.classList.add('star-element');
+                this.size = Math.random() * 80 + 60; // Slightly smaller stars
+                this.element.style.width = `${this.size}px`;
+                this.element.style.height = `${this.size}px`;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                this.element.style.setProperty('--star-color', color);
+                
+                this.element.innerHTML = `
+                    <svg class="star-svg-container" viewBox="0 0 500 500">
+                        <path class="star-fill" d="${starPath}" />
+                        <path class="star-outline" d="${starPath}" />
+                    </svg>
+                `;
+                document.body.appendChild(this.element);
+
+                this.x = Math.random() * window.innerWidth;
+                this.y = Math.random() * window.innerHeight;
+                this.vx = (Math.random() - 0.5) * 0.5; // Slower movement
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.rotation = Math.random() * 360;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.rotation += 0.1;
+
+                if (this.x < -100) this.x = window.innerWidth + 100;
+                if (this.x > window.innerWidth + 100) this.x = -100;
+                if (this.y < -100) this.y = window.innerHeight + 100;
+                if (this.y > window.innerHeight + 100) this.y = -100;
+
+                this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
+            }
+        }
+
+        const stars = [];
+        for (let i = 0; i < NUM_STARS; i++) stars.push(new Star());
+
+        function animate() {
+            stars.forEach(star => star.update());
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+    </script>
+</body>
+</html>

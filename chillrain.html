@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chill in the Rain | Ganling Zhou</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= BASE STYLES ================= */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            background-color: #F8F4E3; 
+            background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); 
+            font-family: 'Gloria Hallelujah', cursive; 
+            cursor: none; 
+            color: #4a3b2a; 
+        }
+
+        /* Custom Cursor */
+        #cursor-nebula { position: fixed; top: 0; left: 0; width: 100px; height: 100px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); opacity: 0.9; }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; filter: url(#crayon-filter-fill); }
+        #svg-filters { position: absolute; width: 0; height: 0; }
+
+        /* Navigation Button */
+        #nav-controls { position: fixed; top: 30px; left: 40px; z-index: 100; }
+        .nav-btn {
+            cursor: none; pointer-events: auto;
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.8; transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-btn:hover { transform: scale(1.1); opacity: 1; }
+        .icon-svg { width: 100%; height: 100%; fill: none; stroke: #4a3b2a; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#crayon-filter-small); }
+
+        /* ================= MAIN LAYOUT ================= */
+        #app-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px 100px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 60px; 
+            align-items: center;
+        }
+
+        /* --- 1. THE MAIN JOURNAL ENTRY (Video + Text Side-by-Side) --- */
+        #journal-entry {
+            width: 100%;
+            background: #fff;
+            border: 2px solid #5c4b37;
+            padding: 40px;
+            /* Notebook paper lines */
+            background-image: linear-gradient(#f0e6d2 1px, transparent 1px);
+            background-size: 100% 30px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(60, 40, 20, 0.1);
+            transform: rotate(-0.5deg);
+        }
+
+        .tape {
+            position: absolute;
+            height: 40px; width: 140px;
+            background-color: rgba(255, 253, 230, 0.8);
+            border-left: 2px dotted rgba(0,0,0,0.1);
+            border-right: 2px dotted rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 20;
+        }
+        .tape-top { top: -15px; left: 50%; transform: translateX(-50%) rotate(2deg); }
+
+        #journal-content {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start; /* Align top */
+            background: rgba(255,255,255,0.9); /* White backing for readability */
+            padding: 30px;
+            border-radius: 5px;
+        }
+
+        /* Video Side */
+        #video-frame {
+            flex: 1.2; /* Takes up slightly more space */
+            border: 4px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transform: rotate(-1deg);
+        }
+        
+        video { width: 100%; display: block; background: #000; }
+
+        /* Text Side */
+        #text-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 { margin-top: 0; color: #C06C3D; font-size: 2.2rem; margin-bottom: 10px; }
+        .tags { font-size: 0.9rem; color: #888; font-style: italic; margin-bottom: 20px; }
+        p { font-size: 1.1rem; line-height: 1.8; margin-bottom: 20px;}
+
+        /* PDF Button (Small Tag Style) */
+        .pdf-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            text-decoration: none; color: #4a3b2a; font-weight: bold; font-size: 1rem;
+            padding: 10px 20px; border: 2px dashed #C06C3D; border-radius: 8px;
+            background: #fff; cursor: none; pointer-events: auto;
+            align-self: flex-start; /* Align left */
+            transition: transform 0.2s, background 0.2s; 
+        }
+        .pdf-btn:hover { transform: scale(1.05); background: #fff8f0; }
+
+        /* --- 2. THE DOWNLOAD SAFE (Bottom) --- */
+        #download-safe {
+            position: relative;
+            width: 80%;
+            padding: 40px;
+            background: #fff;
+            border: 4px dashed #C06C3D; /* Dashed orange border */
+            border-radius: 20px;
+            transform: rotate(1deg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 10px 0px rgba(192, 108, 61, 0.1);
+        }
+
+        #download-safe h2 { margin-top: 0; color: #C06C3D; font-size: 1.8rem; }
+
+        .download-btn {
+            margin-top: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: #fff;
+            background: #C06C3D;
+            font-weight: bold;
+            font-size: 1.3rem;
+            padding: 20px 40px;
+            border-radius: 50px;
+            cursor: none; pointer-events: auto;
+            transition: all 0.2s;
+            box-shadow: 0 5px 0px #8a4a26;
+        }
+        .download-btn:hover { transform: translateY(3px); box-shadow: 0 2px 0px #8a4a26; background: #d67d4d; }
+        .download-btn:active { transform: translateY(5px); box-shadow: none; }
+        
+        .safe-icon { width: 30px; height: 30px; stroke: #fff; fill: none; stroke-width: 3; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            #journal-content { flex-direction: column; }
+            #video-frame { transform: rotate(0deg); width: 100%; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <svg id="svg-filters">
+        <defs>
+            <filter id="crayon-filter-small">
+                <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
+            </filter>
+            <filter id="crayon-filter-fill">
+                <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div id="cursor-nebula">
+        <div class="nebula-blob" style="width: 100%; height: 100%; background: #C06C3D; top:0; left:0;"></div>
+        <div class="nebula-blob" style="width: 80%; height: 80%; background: #D988A8; top:-10%; left:20%;"></div>
+    </div>
+
+    <div id="nav-controls">
+        <div class="nav-btn" onclick="window.location.href='portfolio.html'">
+            <svg class="icon-svg" viewBox="0 0 50 50">
+                <path d="M30 10 L15 25 L30 40" />
+                <path d="M15 25 L45 25" />
+            </svg>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <div id="journal-entry">
+            <div class="tape tape-top"></div> 
+            
+            <div id="journal-content">
+                <div id="video-frame">
+                    <video controls width="100%">
+                        <source src="chillinrainvideo.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+
+                <div id="text-content">
+                    <h1>Chill in the Rain</h1>
+                    <div class="tags">#MaxMSP #SoundSpatialization #MachineLearning</div>
+                    
+                    <p>
+                        "Chill in the Rain" is an immersive audio-visual installation that explores the boundaries between organic phenomena and synthetic interpretation. 
+                    </p>
+                    <p>
+                        Using <strong>MaxMSP</strong> for real-time sound spatialization, the project simulates the stochastic nature of rainfall. Machine learning algorithms analyze the density and "mood" of the visual input to generate a reactive soundscape.
+                    </p>
+
+                    <a href="chill_in_rain_explained.pdf" class="pdf-btn" target="_blank">
+                        Read Documentation (PDF)
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="download-safe">
+            <h2>Try the Patch</h2>
+            <p style="font-size: 1.1rem; color: #666; max-width: 600px;">
+                This project includes external objects and audio buffers. <br>
+                Download the complete project archive below (Requires Max 8+).
+            </p>
+            
+            <a href="chill_in_rain_project.zip" class="download-btn" download>
+                <svg class="safe-icon" viewBox="0 0 24 24">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7 10 12 15 17 10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Download Project (.zip)
+            </a>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CURSOR LOGIC ---
+        const cursor = document.getElementById('cursor-nebula');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+</html>

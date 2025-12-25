@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gummy Bear Machine | Ganling Zhou</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= BASE STYLES ================= */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            background-color: #F8F4E3; 
+            background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); 
+            font-family: 'Gloria Hallelujah', cursive; 
+            cursor: none; 
+            color: #333;
+        }
+
+        /* Custom Cursor */
+        #cursor-nebula { position: fixed; top: 0; left: 0; width: 100px; height: 100px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); opacity: 0.9; }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; filter: url(#crayon-filter-fill); }
+        #svg-filters { position: absolute; width: 0; height: 0; }
+
+        /* Navigation Button */
+        #nav-controls { position: fixed; top: 30px; left: 40px; z-index: 100; }
+        .nav-btn {
+            cursor: none; pointer-events: auto;
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.8; transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-btn:hover { transform: scale(1.1); opacity: 1; }
+        .icon-svg { width: 100%; height: 100%; fill: none; stroke: #333; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#crayon-filter-small); }
+
+        /* ================= MAIN LAYOUT ================= */
+        #app-container {
+            width: 100%;
+            max-width: 1300px;
+            margin: 0 auto;
+            padding: 80px 20px 100px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 80px; 
+        }
+
+        /* --- 1. THE JOURNAL (Top) --- */
+        #journal-entry {
+            width: 90%;
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #fff;
+            border: 2px solid #333;
+            padding: 40px;
+            background-image: linear-gradient(#e8e8e8 1px, transparent 1px);
+            background-size: 100% 30px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            transform: rotate(0.5deg);
+        }
+
+        .tape {
+            position: absolute;
+            height: 40px;
+            width: 120px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-left: 2px dotted rgba(0,0,0,0.1);
+            border-right: 2px dotted rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            opacity: 0.7;
+            z-index: 20;
+            transform: rotate(-25deg);
+        }
+        .tape-top { top: -15px; left: 45%; }
+        
+        #journal-content {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        #video-frame {
+            flex: 1;
+            border: 4px solid #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transform: rotate(-1deg);
+        }
+        
+        video { width: 100%; display: block; }
+
+        #text-content {
+            flex: 1;
+        }
+
+        h1 { margin-top: 0; color: #C06C3D; font-size: 2.2rem; }
+        p { font-size: 1.1rem; line-height: 1.8; margin-bottom: 20px;}
+
+        /* --- 2. THE WORKBENCH (Bottom) --- */
+        #workbench {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 40px;
+            flex-wrap: wrap; 
+        }
+
+        .sketch-box {
+            background: rgba(255, 255, 255, 0.7);
+            border: 3px solid #333;
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.1);
+            padding: 20px;
+            position: relative;
+        }
+
+        #machine-wrapper {
+            border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+            transform: rotate(-1deg); 
+            z-index: 10;
+        }
+
+        #machine-container {
+            position: relative;
+            width: 700px; 
+            height: 466px; 
+            background-size: cover;
+            background-position: center;
+            border-radius: 5px; 
+            border: 2px solid #333;
+            background-image: url('machine_red.jpg');
+            transition: background-image 0.3s ease;
+            filter: sepia(0.2) contrast(1.1); 
+        }
+
+        #shelf-wrapper {
+            border-radius: 15px 225px 15px 255px / 225px 15px 255px 15px;
+            transform: rotate(2deg); 
+            min-width: 340px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+        }
+
+        h2 { 
+            text-align: center; margin: 0 0 20px 0; 
+            font-size: 1.8rem; color: #C06C3D; 
+            border-bottom: 2px dashed #ccc;
+            width: 100%;
+            padding-bottom: 10px;
+        }
+
+        /* --- INTERACTIVE LOGIC --- */
+        
+        /* THE DROP ZONE
+           - Removed border and background for "Invisible" look
+           - Added transition for the glow effect
+        */
+        #drop-zone {
+            position: absolute;
+            top: 5%; right: 5%; 
+            width: 310px; height: 310px;
+            border-radius: 50%; /* Circular glow looks more magical */
+            display: flex; justify-content: center; align-items: end;
+            z-index: 10;
+            transition: all 0.3s ease;
+        }
+
+        /* THE VISUAL HINT (Glow)
+           - Only appears when 'highlight' class is added via JS (dragover)
+           - Uses a radial gradient for a soft spotlight effect
+        */
+        #drop-zone.highlight { 
+            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
+            box-shadow: 0 0 20px rgba(255,255,255,0.4);
+            transform: scale(1.05);
+        }
+
+        .instruction {
+            margin-top: 15px;
+            text-align: center; font-size: 1.2rem; color: #555; font-style: italic;
+            font-weight: bold;
+        }
+
+        /* BEARS (300px) */
+        .bear {
+            width: 300px;
+            cursor: none; 
+            pointer-events: auto;
+            transition: transform 0.2s, opacity 0.2s; /* Animate opacity too */
+            filter: drop-shadow(2px 6px 0px rgba(0,0,0,0.2));
+            z-index: 50;
+        }
+        .bear:hover { transform: scale(1.05) rotate(3deg); }
+        .bear:active { transform: scale(0.95); }
+
+        /* HIDDEN BEAR LOGIC
+           - When a bear is inside #drop-zone, it becomes invisible 
+             so it doesn't clash with the bear in the photo.
+           - Pointer events disabled so you don't accidentally drag the invisible bear.
+        */
+        #drop-zone .bear { 
+            opacity: 0; 
+            pointer-events: none;
+            width: 300px; 
+            margin-bottom: 0px; 
+        }
+
+    </style>
+</head>
+<body>
+
+    <svg id="svg-filters">
+        <defs>
+            <filter id="crayon-filter-small">
+                <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
+            </filter>
+            <filter id="crayon-filter-fill">
+                <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div id="cursor-nebula">
+        <div class="nebula-blob" style="width: 100%; height: 100%; background: #C06C3D; top:0; left:0;"></div>
+        <div class="nebula-blob" style="width: 80%; height: 80%; background: #D988A8; top:-10%; left:20%;"></div>
+    </div>
+
+    <div id="nav-controls">
+        <div class="nav-btn" onclick="window.location.href='portfolio.html'">
+            <svg class="icon-svg" viewBox="0 0 50 50">
+                <path d="M30 10 L15 25 L30 40" />
+                <path d="M15 25 L45 25" />
+            </svg>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <div id="journal-entry">
+            <div class="tape tape-top"></div> 
+            
+            <div id="journal-content">
+                <div id="video-frame">
+                    <video controls width="100%">
+                        <source src="gummyvideo.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+
+                <div id="text-content">
+                    <h1>The Process</h1>
+                    <p>
+                        This project bridges the physical and digital worlds. By using color-coded gummy bear figures as physical "keys," the user can interact with the drum machine in a tangible way.
+                    </p>
+                    <p>
+                        Each bear contains a magnet that triggers a specific Hall effect sensor inside the casing. An Arduino reads these sensors and drives the LED matrix to display the corresponding color pattern, creating an immediate visual feedback loop.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="workbench">
+            
+            <div id="machine-wrapper" class="sketch-box">
+                <div class="tape tape-top"></div> 
+                <div id="machine-container">
+                    <div id="drop-zone" ondrop="drop(event)" ondragover="allowDrop(event)">
+                        <img src="bear_red.png" draggable="true" ondragstart="drag(event)" id="bear-red" class="bear" data-color="red">
+                    </div>
+                </div>
+                <div class="instruction">Drag a bear to the spot to start the beat!</div>
+            </div>
+
+            <div id="shelf-wrapper" class="sketch-box" ondrop="drop(event)" ondragover="allowDrop(event)">
+                <h2>Spare Bears</h2>
+                <img src="bear_blue.png" draggable="true" ondragstart="drag(event)" id="bear-blue" class="bear" data-color="blue">
+                <img src="bear_yellow.png" draggable="true" ondragstart="drag(event)" id="bear-yellow" class="bear" data-color="yellow">
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // --- DRAG AND DROP LOGIC ---
+        function allowDrop(ev) {
+            ev.preventDefault();
+            // Only highlight if dragging over the zone
+            var zone = document.getElementById("drop-zone");
+            if (ev.target.id === "drop-zone" || ev.target.closest('#drop-zone')) {
+                zone.classList.add("highlight");
+            }
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            document.getElementById("drop-zone").classList.remove("highlight");
+
+            var data = ev.dataTransfer.getData("text");
+            var draggedElement = document.getElementById(data);
+            var targetContainer = ev.target.closest('#drop-zone') || ev.target.closest('#shelf-wrapper');
+
+            if (targetContainer) {
+                if (targetContainer.id === 'drop-zone') {
+                    // 1. Check if there's already a bear here
+                    var existingBear = targetContainer.querySelector('.bear');
+                    if (existingBear) {
+                        // Move the old invisible bear back to the shelf (it becomes visible again via CSS)
+                        document.getElementById('shelf-wrapper').appendChild(existingBear);
+                    }
+                    
+                    // 2. Update the Background Photo
+                    var color = draggedElement.getAttribute('data-color');
+                    updateMachineLights(color);
+                } 
+                
+                // 3. Move the dropped bear
+                // If moved to shelf, it becomes visible (CSS).
+                // If moved to drop-zone, it becomes invisible (CSS).
+                targetContainer.appendChild(draggedElement);
+            }
+        }
+
+        function updateMachineLights(color) {
+            var machine = document.getElementById('machine-container');
+            if (color === 'red') machine.style.backgroundImage = "url('machine_red.jpg')";
+            else if (color === 'blue') machine.style.backgroundImage = "url('machine_blue.jpg')";
+            else if (color === 'yellow') machine.style.backgroundImage = "url('machine_yellow.jpg')";
+        }
+        
+        // Remove highlight if drag leaves the area
+        document.getElementById("drop-zone").addEventListener('dragleave', function(){
+            this.classList.remove("highlight");
+        });
+
+        // --- CURSOR LOGIC ---
+        const cursor = document.getElementById('cursor-nebula');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+</html>

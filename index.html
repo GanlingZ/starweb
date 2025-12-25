@@ -239,22 +239,32 @@
             }
         });
         
-        function goToPortfolio() {
+       function goToPortfolio() {
+            // Replace 'portfolio.html' with the actual name of your next file
+            const targetUrl = 'portfolio.html'; 
+
             if (isMusicOn) {
-                // 离开页面前快速淡出
+                // 1. If music is on, fade it out first, THEN jump
                 if (fadeInterval) clearInterval(fadeInterval);
                 let vol = bgMusic.volume;
+                
                 let outInterval = setInterval(() => {
                     if (vol > 0.05) {
-                        vol -= 0.1;
+                        vol -= 0.1; // Decrease volume quickly
                         bgMusic.volume = vol;
                     } else {
+                        // 2. Volume is effectively zero, stop the interval
                         bgMusic.volume = 0;
                         clearInterval(outInterval);
+                        
+                        // 3. NOW navigate to the new page
+                        window.location.href = targetUrl;
                     }
-                }, 50);
+                }, 50); // Runs every 50ms
+            } else {
+                // 4. If music is off, jump immediately
+                window.location.href = targetUrl;
             }
-            alert('Going to Portfolio...'); 
         }
 
 
