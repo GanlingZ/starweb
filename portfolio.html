@@ -159,7 +159,7 @@
         .star-fill { fill: var(--star-color); stroke: none; transform: scale(0.92); transform-origin: center; filter: url(#crayon-filter-fill); opacity: 0.85; }
         
         #cursor-nebula { position: fixed; top: 0; left: 0; width: 100px; height: 100px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); opacity: 0.9; }
-        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; filter: url(#crayon-filter-fill); }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply;  }
         #svg-filters { position: absolute; width: 0; height: 0; }
 
         /* Audio Control State */
@@ -367,9 +367,9 @@
         const cursor = document.getElementById('cursor-nebula');
 
         document.addEventListener('mousemove', (e) => {
-            cursor.style.left = e.clientX + 'px';
-            cursor.style.top = e.clientY + 'px';
-        });
+    
+    cursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px)`;
+});
 
         class Star {
             constructor() {
