@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Deep Forest | Warm Tech</title>
+    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    <style>
+        /* ================= 全局设置 ================= */
+        body {
+            margin: 0;
+            height: 100vh;
+            background: radial-gradient(circle at bottom center, #0a0f1c 0%, #000000 100%);
+            color: #E6C77F;
+            font-family: 'ZCOOL KuaiLe', cursive;
+            overflow: hidden;
+            user-select: none;
+            transition: background 3s ease;
+        }
+
+        body.active-mode {
+            background: radial-gradient(circle at bottom center, #2d1b15 0%, #050505 100%);
+        }
+
+        /* 状态文字 */
+        #status-text {
+            position: absolute;
+            top: 10%;
+            width: 100%;
+            text-align: center;
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            color: #475569;
+            transition: all 1s;
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        body.active-mode #status-text {
+            color: #E6C77F;
+            text-shadow: 0 0 15px rgba(230, 199, 127, 0.5);
+            content: "FOREST AWAKE";
+        }
+
+        /* ================= 1. 波形层 (Canvas Layer) ================= */
+        /* 天空总线 */
+        #master-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200px;
+            z-index: 1;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+
+        /* 迷你波形容器 (绝对定位) */
+        .mini-scope {
+            position: absolute;
+            width: 80px;
+            height: 50px;
+            bottom: 0; /* JS会动态调整 */
+            left: 0;   /* JS会动态调整 */
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.02));
+            z-index: 5;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 1s;
+        }
+        
+        .mini-canvas { width: 100%; height: 100%; }
+        
+        body.active-mode .mini-scope { opacity: 1; }
+
+        /* ================= 2. 森林层 (SVG Layer) ================= */
+        #forest-container {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 60%; /* 占据下半部分 */
+            z-index: 10;
+            /* 夜间滤镜 */
+            filter: hue-rotate(190deg) brightness(0.5) contrast(1.2) saturate(0.6);
+            transition: filter 2.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        body.active-mode #forest-container {
+            /* 唤醒滤镜 */
+            filter: hue-rotate(0deg) brightness(1.1) contrast(1) saturate(1.1) drop-shadow(0 0 25px rgba(255, 140, 0, 0.2));
+        }
+
+        .forest-svg {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+            filter: url(#crayon-texture);
+        }
+
+        /* 交互组 */
+        .shroom-group {
+            cursor: ns-resize;
+            transition: transform 0.1s;
+            /* 变换中心在底部，通过CSS变量动态控制 */
+            transform-origin: var(--origin-x) var(--origin-y);
+        }
+
+        .shroom-group:hover { filter: brightness(1.2); }
+        .shroom-group:active { cursor: grabbing; }
+
+        /* 呼吸动画 */
+        body.active-mode .shroom-group {
+            animation: breathe 6s infinite ease-in-out;
+            animation-delay: var(--delay);
+        }
+
+        @keyframes breathe {
+            0%, 100% { transform: scale(var(--current-scale)); }
+            50% { transform: scale(calc(var(--current-scale) * 1.03)); }
+        }
+
+        .ground-line { stroke: #3E2723; stroke-width: 4; fill: #1a0f0d; }
+
+        /* 标签文字 (悬停显示) */
+        .label-text {
+            fill: #E6C77F;
+            font-size: 14px;
+            font-family: 'Playfair Display', serif;
+            text-anchor: middle;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .shroom-group:hover .label-text { opacity: 1; }
+
+    </style>
+</head>
+<body>
+
+    <svg style="position: absolute; width: 0; height: 0;">
+        <defs>
+            <filter id="crayon-texture">
+                <feTurbulence type="fractalNoise" baseFrequency="0.06" numOctaves="3" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" />
+                <feComposite operator="in" in="noise" in2="SourceGraphic" result="textured" />
+                <feBlend mode="multiply" in="textured" in2="SourceGraphic" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div id="status-text">[ SPACEBAR TO WAKE FOREST ]</div>
+    <canvas id="master-canvas"></canvas>
+
+    <div id="scope-warmth" class="mini-scope" style="left: 5%; bottom: 35%; border-color: #FF7043;"><canvas class="mini-canvas"></canvas></div>
+    <div id="scope-sub"    class="mini-scope" style="left: 17%; bottom: 25%; border-color: #5D4037;"><canvas class="mini-canvas"></canvas></div>
+    <div id="scope-res"    class="mini-scope" style="left: 29%; bottom: 38%; border-color: #FFCA28;"><canvas class="mini-canvas"></canvas></div>
+    <div id="scope-wobble" class="mini-scope" style="left: 41%; bottom: 32%; border-color: #AB47BC;"><canvas class="mini-canvas"></canvas></div>
+    <div id="scope-shimmer" class="mini-scope" style="left: 53%; bottom: 40%; border-color: #29B6F6;"><canvas class="mini-canvas"></canvas></div>
+    <div id="scope-arp"    class="mini-scope" style="left: 65%; bottom: 35%; border-color: #9CCC65;"><canvas class="mini-canvas"></canvas></div>
+    <div id="scope-echo"   class="mini-scope" style="left: 77%; bottom: 28%; border-color: #EC407A;"><canvas class="mini-canvas"></canvas></div>
+    <div id="scope-wind"   class="mini-scope" style="left: 89%; bottom: 20%; border-color: #78909C;"><canvas class="mini-canvas"></canvas></div>
+
+    <div id="forest-container">
+        <svg class="forest-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMax meet">
+            
+            <path class="ground-line" d="M0 550 Q200 520 400 550 T800 540 T1200 560 V600 H0 Z" />
+
+            <g id="s-warmth" class="shroom-group" data-param="warmth" data-val="0.5" style="--origin-x: 100px; --origin-y: 550px; --delay: 0s;">
+                <path d="M100 550 Q90 450 100 350" stroke="#D7CCC8" stroke-width="14" fill="none"/>
+                <path d="M100 350 C40 350, 50 280, 100 250 C150 280, 160 350, 100 350" fill="#FF7043"/>
+                <text x="100" y="230" class="label-text">Warmth</text>
+            </g>
+
+            <g id="s-sub" class="shroom-group" data-param="sub" data-val="0.3" style="--origin-x: 220px; --origin-y: 560px; --delay: 1s;">
+                <path d="M220 560 Q230 520 220 500" stroke="#5D4037" stroke-width="18" fill="none"/>
+                <ellipse cx="220" cy="500" rx="40" ry="25" fill="#4E342E" stroke="#3E2723" stroke-width="2"/>
+                <text x="220" y="460" class="label-text">Sub Bass</text>
+            </g>
+
+            <g id="s-res" class="shroom-group" data-param="res" data-val="0.2" style="--origin-x: 340px; --origin-y: 540px; --delay: 0.5s;">
+                <path d="M340 540 Q330 450 340 400" stroke="#D7CCC8" stroke-width="8" fill="none"/>
+                <path d="M340 400 L300 420 L340 280 L380 420 Z" fill="#FFCA28"/>
+                <text x="340" y="260" class="label-text">Resonance</text>
+            </g>
+
+            <g id="s-wobble" class="shroom-group" data-param="wobble" data-val="0.2" style="--origin-x: 460px; --origin-y: 550px; --delay: 1.5s;">
+                <path d="M460 550 Q470 480 460 420" stroke="#D7CCC8" stroke-width="10" fill="none"/>
+                <path d="M410 420 Q430 380 460 420 Q490 380 510 420 Q460 460 410 420" fill="#AB47BC"/>
+                <circle cx="440" cy="410" r="5" fill="#E1BEE7"/>
+                <text x="460" y="380" class="label-text">Wobble</text>
+            </g>
+
+            <g id="s-shimmer" class="shroom-group" data-param="shimmer" data-val="0.0" style="--origin-x: 580px; --origin-y: 540px; --delay: 2s;">
+                <path d="M570 540 Q565 480 570 420" stroke="#B3E5FC" stroke-width="4" fill="none"/>
+                <circle cx="570" cy="420" r="8" fill="#29B6F6"/>
+                <path d="M590 540 Q600 460 590 400" stroke="#B3E5FC" stroke-width="5" fill="none"/>
+                <circle cx="590" cy="400" r="10" fill="#29B6F6"/>
+                <text x="580" y="380" class="label-text">Shimmer</text>
+            </g>
+
+            <g id="s-arp" class="shroom-group" data-param="arpSpeed" data-val="0.4" style="--origin-x: 700px; --origin-y: 550px; --delay: 2.5s;">
+                <path d="M700 550 Q690 500 700 450" stroke="#D7CCC8" stroke-width="10" fill="none"/>
+                <circle cx="700" cy="450" r="30" fill="#9CCC65"/>
+                <path d="M700 450 m-20 0 a 20 20 0 1 0 40 0 a 20 20 0 1 0 -40 0" stroke="#DCEDC8" stroke-width="3" fill="none"/>
+                <text x="700" y="410" class="label-text">Rhythm</text>
+            </g>
+
+            <g id="s-echo" class="shroom-group" data-param="echo" data-val="0.1" style="--origin-x: 820px; --origin-y: 530px; --delay: 3s;">
+                <path d="M820 530 Q830 480 820 440" stroke="#D7CCC8" stroke-width="8" fill="none"/>
+                <ellipse cx="820" cy="440" rx="35" ry="10" fill="#F48FB1"/>
+                <ellipse cx="820" cy="425" rx="25" ry="8" fill="#F06292"/>
+                <text x="820" y="400" class="label-text">Echo</text>
+            </g>
+
+            <g id="s-wind" class="shroom-group" data-param="wind" data-val="0.2" style="--origin-x: 940px; --origin-y: 560px; --delay: 3.5s;">
+                <path d="M940 560 Q930 540 940 520" stroke="#607D8B" stroke-width="6" fill="none"/>
+                <path d="M910 520 Q940 480 970 520 Q940 530 910 520" fill="#90A4AE"/>
+                <text x="940" y="490" class="label-text">Wind</text>
+            </g>
+
+        </svg>
+    </div>
+
+    <script>
+        // ================= 音频引擎 (8-Param Engine) =================
+        let ctx, masterGain;
+        let isRunning = false;
+        
+        // 节点
+        let droneOsc, droneFilter, subOsc, subGain, shimmerOsc, shimmerGain;
+        let wobbleLFO, wobbleGain;
+        let noiseNode, noiseGain;
+        let arpGain, delayNode, delayFeedback;
+        
+        // 分析器
+        let anMaster, anWarmth, anSub, anRes, anWobble, anShimmer, anArp, anEcho, anWind;
+
+        // 琶音状态
+        let arpInterval = null;
+        let arpIndex = 0;
+        const ARP_NOTES = [130.81, 155.56, 196.00, 233.08, 293.66]; // Cmin9
+
+        let params = {
+            warmth: 0.5,
+            res: 0.2,
+            sub: 0.3,
+            wobble: 0.2,
+            shimmer: 0.0,
+            arpSpeed: 0.4,
+            echo: 0.1,
+            wind: 0.2
+        };
+
+        async function initAudio() {
+            if (ctx) return;
+            ctx = new (window.AudioContext || window.webkitAudioContext)();
+            masterGain = ctx.createGain();
+            masterGain.gain.value = 0;
+            
+            // Master Visual
+            anMaster = ctx.createAnalyser();
+            anMaster.fftSize = 2048;
+            masterGain.connect(anMaster);
+            anMaster.connect(ctx.destination);
+
+            // --- 1. Drone Core (Warmth + Res) ---
+            droneFilter = ctx.createBiquadFilter();
+            droneFilter.type = 'lowpass';
+            
+            droneOsc = ctx.createOscillator();
+            droneOsc.type = 'sawtooth';
+            droneOsc.frequency.value = 65.41; // C2
+            
+            // Visuals: Monitor Filter Output
+            anWarmth = ctx.createAnalyser(); anWarmth.fftSize = 256;
+            anRes = ctx.createAnalyser(); anRes.fftSize = 256; // Shared signal visual
+            
+            droneOsc.connect(droneFilter);
+            droneFilter.connect(anWarmth).connect(masterGain);
+            droneFilter.connect(anRes); // Just for visual
+
+            // --- 2. Sub Bass (Sub) ---
+            subOsc = ctx.createOscillator();
+            subOsc.type = 'sine';
+            subOsc.frequency.value = 32.7; // C1
+            subGain = ctx.createGain();
+            
+            anSub = ctx.createAnalyser(); anSub.fftSize = 256;
+            subOsc.connect(subGain).connect(anSub).connect(masterGain);
+
+            // --- 3. Shimmer (High Octave) ---
+            shimmerOsc = ctx.createOscillator();
+            shimmerOsc.type = 'sawtooth';
+            shimmerOsc.frequency.value = 130.81; // C3
+            shimmerGain = ctx.createGain();
+            
+            anShimmer = ctx.createAnalyser(); anShimmer.fftSize = 256;
+            shimmerOsc.connect(shimmerGain).connect(anShimmer).connect(masterGain);
+
+            // --- 4. Wobble LFO ---
+            wobbleLFO = ctx.createOscillator();
+            wobbleLFO.type = 'sine';
+            wobbleLFO.frequency.value = 0.5;
+            wobbleGain = ctx.createGain();
+            
+            anWobble = ctx.createAnalyser(); anWobble.fftSize = 1024;
+            wobbleLFO.connect(anWobble);
+            wobbleLFO.connect(wobbleGain);
+            wobbleGain.connect(droneOsc.detune);
+            wobbleGain.connect(shimmerOsc.detune);
+
+            // --- 5. Wind (Noise) ---
+            const bSize = ctx.sampleRate * 2;
+            const b = ctx.createBuffer(1, bSize, ctx.sampleRate);
+            const d = b.getChannelData(0);
+            for(let i=0; i<bSize; i++) d[i] = Math.random()*2-1;
+            
+            noiseNode = ctx.createBufferSource();
+            noiseNode.buffer = b;
+            noiseNode.loop = true;
+            let nFilter = ctx.createBiquadFilter();
+            nFilter.type = 'lowpass'; nFilter.frequency.value = 800;
+            noiseGain = ctx.createGain();
+            
+            anWind = ctx.createAnalyser(); anWind.fftSize = 256;
+            noiseNode.connect(nFilter).connect(noiseGain).connect(anWind).connect(masterGain);
+
+            // --- 6. Arp + Delay (Echo) ---
+            arpGain = ctx.createGain();
+            
+            // Delay Chain
+            delayNode = ctx.createDelay();
+            delayNode.delayTime.value = 0.4;
+            delayFeedback = ctx.createGain();
+            
+            // Arp -> Output
+            // Arp -> Delay -> Feedback -> Delay
+            // Delay -> Output
+            anArp = ctx.createAnalyser(); anArp.fftSize = 256;
+            anEcho = ctx.createAnalyser(); anEcho.fftSize = 256;
+
+            arpGain.connect(anArp).connect(masterGain);
+            arpGain.connect(delayNode);
+            delayNode.connect(delayFeedback).connect(delayNode);
+            delayNode.connect(anEcho).connect(masterGain);
+
+            // Start
+            droneOsc.start();
+            subOsc.start();
+            shimmerOsc.start();
+            wobbleLFO.start();
+            noiseNode.start();
+
+            updateAudio();
+            drawLoop();
+        }
+
+        // --- Arp Logic ---
+        function triggerNote() {
+            if (!isRunning) return;
+            const osc = ctx.createOscillator();
+            osc.type = 'triangle';
+            osc.frequency.value = ARP_NOTES[arpIndex++ % ARP_NOTES.length];
+            
+            // Apply wobble to arp too
+            let detune = (Math.random()-0.5) * (params.wobble * 30);
+            osc.detune.value = detune;
+
+            const g = ctx.createGain();
+            const t = ctx.currentTime;
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.2, t+0.05);
+            g.gain.exponentialRampToValueAtTime(0.001, t+0.4);
+
+            osc.connect(g).connect(arpGain);
+            osc.start(t);
+            osc.stop(t+0.5);
+        }
+
+        function startArp() {
+            if (arpInterval) clearInterval(arpInterval);
+            const ms = 1100 - (params.arpSpeed * 800);
+            arpInterval = setInterval(triggerNote, ms);
+        }
+
+        // --- Param Update ---
+        function updateAudio() {
+            if (!ctx) return;
+            const t = ctx.currentTime;
+
+            // 1. Warmth (Filter Freq)
+            const cutoff = 60 + ((params.warmth-0.2) * 1500);
+            droneFilter.frequency.setTargetAtTime(Math.max(50, cutoff), t, 0.1);
+
+            // 2. Resonance (Q)
+            // Scale 0.2-1.5 -> Q 0-15
+            const q = Math.max(0, (params.res-0.5) * 15);
+            droneFilter.Q.setTargetAtTime(q, t, 0.1);
+
+            // 3. Sub (Gain)
+            const sGain = Math.max(0, (params.sub-0.5) * 0.5);
+            subGain.gain.setTargetAtTime(sGain, t, 0.1);
+
+            // 4. Wobble (LFO Gain)
+            const wAmt = Math.max(0, (params.wobble-0.2) * 50);
+            wobbleGain.gain.setTargetAtTime(wAmt, t, 0.1);
+
+            // 5. Shimmer (Gain)
+            const shGain = Math.max(0, (params.shimmer-0.5) * 0.15);
+            shimmerGain.gain.setTargetAtTime(shGain, t, 0.1);
+
+            // 6. Arp Speed
+            if (isRunning) startArp();
+
+            // 7. Echo (Feedback Gain)
+            // Limit to 0.9 to avoid infinite loop
+            const fb = Math.min(0.9, Math.max(0, (params.echo-0.3) * 0.8));
+            delayFeedback.gain.setTargetAtTime(fb, t, 0.1);
+
+            // 8. Wind (Noise Gain)
+            const nGain = Math.max(0, (params.wind-0.5) * 0.1);
+            noiseGain.gain.setTargetAtTime(nGain, t, 0.1);
+        }
+
+        function toggleState() {
+            if (!ctx) initAudio();
+            const now = ctx.currentTime;
+            const body = document.body;
+            const txt = document.getElementById('status-text');
+
+            if (ctx.state === 'suspended') ctx.resume();
+
+            if (isRunning) {
+                // Sleep
+                isRunning = false;
+                body.classList.remove('active-mode');
+                txt.innerText = "[ SPACEBAR TO WAKE FOREST ]";
+                masterGain.gain.setTargetAtTime(0, now, 2);
+                clearInterval(arpInterval);
+            } else {
+                // Wake
+                isRunning = true;
+                body.classList.add('active-mode');
+                txt.innerText = "FOREST AWAKE";
+                masterGain.gain.setTargetAtTime(0.5, now, 3);
+                startArp();
+            }
+        }
+
+        // ================= Visual Loop =================
+        function drawLoop() {
+            requestAnimationFrame(drawLoop);
+            if (!isRunning) return;
+
+            // Master
+            drawWave(anMaster, 'master-canvas', '#E6C77F', 2);
+
+            // Minis
+            drawWave(anWarmth, 'scope-warmth', '#FF7043', 1.5);
+            drawWave(anSub, 'scope-sub', '#5D4037', 1.5);
+            drawWave(anRes, 'scope-res', '#FFCA28', 1.5);
+            drawWave(anWobble, 'scope-wobble', '#AB47BC', 1.5);
+            drawWave(anShimmer, 'scope-shimmer', '#29B6F6', 1.5);
+            drawWave(anArp, 'scope-arp', '#9CCC65', 1.5);
+            drawWave(anEcho, 'scope-echo', '#EC407A', 1.5);
+            drawWave(anWind, 'scope-wind', '#78909C', 1.5);
+        }
+
+        function drawWave(node, id, color, lw) {
+            if (!node) return;
+            // Get canvas from ID or container
+            let canvas = document.getElementById(id);
+            if (!canvas) return; // safety
+            if (canvas.tagName !== 'CANVAS') canvas = canvas.querySelector('canvas');
+
+            if (canvas.width !== canvas.clientWidth) {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+            }
+
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+            const buffer = new Uint8Array(node.frequencyBinCount);
+            node.getByteTimeDomainData(buffer);
+
+            ctx.clearRect(0, 0, w, h);
+            ctx.lineWidth = lw;
+            ctx.strokeStyle = color;
+            ctx.beginPath();
+
+            const slice = w * 1.0 / buffer.length;
+            let x = 0;
+            for(let i=0; i<buffer.length; i++) {
+                const v = buffer[i] / 128.0;
+                const y = v * h / 2;
+                if(i===0) ctx.moveTo(x,y);
+                else ctx.lineTo(x,y);
+                x += slice;
+            }
+            ctx.stroke();
+        }
+
+        // ================= Interaction =================
+        document.querySelectorAll('.shroom-group').forEach(el => {
+            const p = el.dataset.param;
+            let val = parseFloat(el.dataset.val);
+            let scale = 0.9 + val;
+            
+            el.style.setProperty('--current-scale', scale);
+            el.style.transform = `scale(${scale})`;
+
+            let dragging = false;
+            let startY;
+            let startScale;
+
+            el.addEventListener('mousedown', e => {
+                dragging = true;
+                startY = e.clientY;
+                startScale = scale;
+                document.body.style.cursor = 'ns-resize';
+                e.stopPropagation();
+            });
+
+            window.addEventListener('mousemove', e => {
+                if (!dragging) return;
+                const delta = startY - e.clientY;
+                let newScale = startScale + (delta * 0.005);
+                newScale = Math.max(0.9, Math.min(2.4, newScale));
+                
+                scale = newScale;
+                el.style.setProperty('--current-scale', scale);
+                el.style.transform = `scale(${scale})`;
+                
+                // Brightness feedback
+                el.style.filter = `brightness(${0.8 + (scale-0.9)})`;
+
+                let newVal = (scale - 0.9) / 1.5;
+                params[p] = Math.max(0, Math.min(1, newVal));
+                updateAudio();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (dragging) {
+                    dragging = false;
+                    document.body.style.cursor = 'default';
+                }
+            });
+        });
+
+        document.addEventListener('keydown', e => {
+            if (e.code === 'Space' && !e.repeat) toggleState();
+        });
+        document.body.addEventListener('click', e => {
+            if (!e.target.closest('.shroom-group')) toggleState();
+        });
+
+    </script>
+</body>
+</html>
