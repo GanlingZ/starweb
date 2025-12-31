@@ -65,41 +65,36 @@
         }
         #enter-btn:hover { transform: rotate(1deg) scale(1.05); background-color: #D97D4A; }
 
-        /* ================= Audio Controls (Updated) ================= */
+        /* ================= Audio Controls ================= */
         #audio-control {
             position: fixed;
-            top: 30px; /* 稍微往下挪一点 */
-            right: 30px; /* 稍微往左挪一点 */
+            top: 30px; 
+            right: 30px; 
             z-index: 100;
             cursor: none; 
             pointer-events: auto;
-            /* 初始透明度高一点，提示用户可以点 */
             opacity: 0.8; 
             transition: transform 0.2s ease, opacity 0.3s ease;
         }
         #audio-control:hover {
-            transform: scale(1.1); /* 悬停时放大 */
+            transform: scale(1.1); 
             opacity: 1;
         }
         
         .speaker-icon {
-            /* ✨ 增大图标尺寸到 70px ✨ */
             width: 70px; 
             height: 70px;
-            
             fill: none;
             stroke: #333;
-            stroke-width: 2.5; /* 线条稍微细一点点，适配大尺寸 */
+            stroke-width: 2.5; 
             stroke-linecap: round;
             stroke-linejoin: round;
             filter: url(#crayon-filter-small);
         }
         
-        /* 状态控制 CSS */
         .sound-wave { display: block; stroke: #C06C3D; transition: opacity 0.2s; }
         .sound-off-line { display: none; stroke: #D988A8; stroke-width: 3; transition: opacity 0.2s; }
         
-        /* 当加上 .muted 类时 */
         #audio-control.muted .sound-wave { display: none; }
         #audio-control.muted .sound-off-line { display: block; }
 
@@ -108,15 +103,32 @@
         .star-svg-container { width: 100%; height: 100%; overflow: visible; transform: skew(0deg) scale(1, 1); }
         .star-outline { fill: none; stroke: #222; stroke-width: 16px; stroke-linecap: round; stroke-linejoin: round; filter: url(#crayon-filter-stroke); }
         .star-fill { fill: var(--star-color); stroke: none; transform: scale(0.92); transform-origin: center; filter: url(#crayon-filter-fill); opacity: 0.85; }
-        #cursor-nebula { position: fixed; top: 0; left: 0; width: 100px; height: 100px; pointer-events: none; z-index: 100; transform: translate(-50%, -50%); opacity: 0.9; }
-        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; filter: url(#crayon-filter-fill); }
+        
+        /* Optimized Cursor CSS */
+        #cursor-nebula { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100px; height: 100px; 
+            pointer-events: none; 
+            z-index: 100; 
+            /* Initialize outside screen to prevent jump */
+            transform: translate(-500px, -500px); 
+            opacity: 0.9; 
+        }
+        .nebula-blob { 
+            position: absolute; 
+            border-radius: 50%; 
+            mix-blend-mode: multiply; 
+            /* Removed filter here to fix LAG */
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        }
         #svg-filters { position: absolute; width: 0; height: 0; }
         
         @media (max-width: 768px) { 
             .crayon-text-en { font-size: 50px; } 
             .watercolor-text-cn { font-size: 80px; } 
             .title-svg-container { min-height: 200px; } 
-            .speaker-icon { width: 50px; height: 50px; } /* 手机上稍微小一点 */
+            .speaker-icon { width: 50px; height: 50px; } 
         }
     </style>
 </head>
@@ -178,26 +190,23 @@
     </div>
 
     <script>
-        // ================= 简化后的音频逻辑 =================
+        // ================= AUDIO LOGIC =================
         const bgMusic = document.getElementById('bg-music');
         const sfxStar = document.getElementById('sfx-star');
         const audioControl = document.getElementById('audio-control');
         const enterBtn = document.getElementById('enter-btn');
         
-        let isMusicOn = false; // 默认：关
+        let isMusicOn = false; 
         let fadeInterval = null;
         const TARGET_VOL = 0.5;
 
-        // 1. 初始化音量
         bgMusic.volume = 0;
 
-        // 2. 点击喇叭时的开关逻辑 (这是开启声音的唯一入口)
         function toggleAudioManual() {
             if (!isMusicOn) {
-                // === 开启音乐 ===
+                // TURN ON
                 isMusicOn = true;
                 bgMusic.play().then(() => {
-                    // Fade In
                     if (fadeInterval) clearInterval(fadeInterval);
                     fadeInterval = setInterval(() => {
                         if (bgMusic.volume < TARGET_VOL) {
@@ -207,14 +216,11 @@
                             clearInterval(fadeInterval);
                         }
                     }, 50);
-                    
                     audioControl.classList.remove('muted');
                 });
             } else {
-                // === 关闭音乐 ===
+                // TURN OFF
                 isMusicOn = false;
-                
-                // Fade Out
                 if (fadeInterval) clearInterval(fadeInterval);
                 fadeInterval = setInterval(() => {
                     if (bgMusic.volume > 0.02) {
@@ -225,12 +231,10 @@
                         clearInterval(fadeInterval);
                     }
                 }, 50);
-
                 audioControl.classList.add('muted');
             }
         }
 
-        // 3. 按钮音效 (仅当音乐开启时播放)
         enterBtn.addEventListener('mouseenter', () => {
             if (isMusicOn) {
                 sfxStar.currentTime = 0;
@@ -240,35 +244,30 @@
         });
         
        function goToPortfolio() {
-            // Replace 'portfolio.html' with the actual name of your next file
+            // Save Stars before leaving!
+            saveStars();
+
             const targetUrl = 'portfolio.html'; 
 
             if (isMusicOn) {
-                // 1. If music is on, fade it out first, THEN jump
                 if (fadeInterval) clearInterval(fadeInterval);
                 let vol = bgMusic.volume;
-                
                 let outInterval = setInterval(() => {
                     if (vol > 0.05) {
-                        vol -= 0.1; // Decrease volume quickly
+                        vol -= 0.1; 
                         bgMusic.volume = vol;
                     } else {
-                        // 2. Volume is effectively zero, stop the interval
                         bgMusic.volume = 0;
                         clearInterval(outInterval);
-                        
-                        // 3. NOW navigate to the new page
                         window.location.href = targetUrl;
                     }
-                }, 50); // Runs every 50ms
+                }, 50);
             } else {
-                // 4. If music is off, jump immediately
                 window.location.href = targetUrl;
             }
         }
 
-
-        // ================= 视觉逻辑 (不变) =================
+        // ================= VISUALS =================
         const NUM_STARS = 15;        
         const MOUSE_REPEL_DIST = 220;
         const MOUSE_FORCE = 0.6;      
@@ -279,14 +278,15 @@
         const starPath = "M 250 20 L 320 180 L 490 180 L 350 280 L 400 450 L 250 350 L 100 450 L 150 280 L 10 180 L 180 180 Z";
 
         const cursor = document.getElementById('cursor-nebula');
-        let mouseX = window.innerWidth / 2;
-        let mouseY = window.innerHeight / 2;
+        let mouseX = -100;
+        let mouseY = -100;
 
+        // OPTIMIZED MOUSE MOVEMENT (Performance Fix)
         document.addEventListener('mousemove', (e) => {
             mouseX = e.clientX;
             mouseY = e.clientY;
-            cursor.style.left = mouseX + 'px';
-            cursor.style.top = mouseY + 'px';
+            // Use transform instead of top/left for smooth FPS
+            cursor.style.transform = `translate(${mouseX}px, ${mouseY}px) translate(-50%, -50%)`;
         });
 
         class Star {
@@ -296,16 +296,19 @@
                 this.size = Math.random() * 120 + 100; 
                 this.element.style.width = `${this.size}px`;
                 this.element.style.height = `${this.size}px`;
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                this.element.style.setProperty('--star-color', color);
-                const skewX = (Math.random() - 0.5) * 40; 
-                const skewY = (Math.random() - 0.5) * 40;
-                const scaleX = 0.8 + Math.random() * 0.4; 
-                const scaleY = 0.8 + Math.random() * 0.4;
+                
+                // Store properties for saving
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+                this.element.style.setProperty('--star-color', this.color);
+                
+                this.skewX = (Math.random() - 0.5) * 40; 
+                this.skewY = (Math.random() - 0.5) * 40;
+                this.scaleX = 0.8 + Math.random() * 0.4; 
+                this.scaleY = 0.8 + Math.random() * 0.4;
 
                 this.element.innerHTML = `
                     <svg class="star-svg-container" viewBox="0 0 500 500" 
-                         style="transform: skew(${skewX}deg, ${skewY}deg) scale(${scaleX}, ${scaleY});">
+                         style="transform: skew(${this.skewX}deg, ${this.skewY}deg) scale(${this.scaleX}, ${this.scaleY});">
                         <path class="star-fill" d="${starPath}" />
                         <path class="star-outline" d="${starPath}" />
                     </svg>
@@ -357,6 +360,23 @@
                 else if (this.y + this.size >= screenH + 50) { this.y = screenH - this.size + 50; this.vy *= -1; }
                 this.element.style.transform = `translate(${this.x}px, ${this.y}px) rotate(${this.rotation}deg)`;
             }
+
+            // Method to export data for Portfolio page
+            getData() {
+                return {
+                    x: this.x,
+                    y: this.y,
+                    vx: this.vx,
+                    vy: this.vy,
+                    rotation: this.rotation,
+                    color: this.color,
+                    size: this.size,
+                    skewX: this.skewX,
+                    skewY: this.skewY,
+                    scaleX: this.scaleX,
+                    scaleY: this.scaleY
+                };
+            }
         }
 
         const stars = [];
@@ -386,6 +406,13 @@
                 if (star.y > window.innerHeight) star.y = window.innerHeight - star.size;
             });
         });
+
+        // ================= SAVE DATA =================
+        function saveStars() {
+            const starData = stars.map(star => star.getData());
+            sessionStorage.setItem('sharedStars', JSON.stringify(starData));
+        }
+
     </script>
 </body>
 </html>
