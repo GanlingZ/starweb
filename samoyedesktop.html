@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&lt;Desktop Samoyed | Interactive Project</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://pyscript.net/releases/2023.05.1/pyscript.css" />
+    <script defer src="https://pyscript.net/releases/2023.05.1/pyscript.js"></script>
+    
+    <style>
+        /* ================= BASE STYLES ================= */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            background-color: #F8F4E3; 
+            background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); 
+            font-family: 'Gloria Hallelujah', cursive; 
+            cursor: none; 
+            color: #4a3b2a; 
+        }
+
+        /* Custom Cursor */
+        #cursor-nebula { position: fixed; top: 0; left: 0; width: 60px; height: 60px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); opacity: 0.8; }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; filter: url(#crayon-filter-fill); }
+        #svg-filters { position: absolute; width: 0; height: 0; }
+
+        /* Navigation Button */
+        #nav-controls { position: fixed; top: 30px; left: 40px; z-index: 100; }
+        .nav-btn {
+            cursor: none; pointer-events: auto;
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.8; transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-btn:hover { transform: scale(1.1); opacity: 1; }
+        .icon-svg { width: 100%; height: 100%; fill: none; stroke: #4a3b2a; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#crayon-filter-small); }
+
+        /* ================= MAIN LAYOUT ================= */
+        #app-container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 80px 20px 100px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 50px; 
+            align-items: center;
+        }
+
+        /* --- 1. THE JOURNAL ENTRY (Live Demo + Text) --- */
+        #journal-entry {
+            width: 100%;
+            background: #fff;
+            border: 2px solid #5c4b37;
+            padding: 40px;
+            /* Notebook paper lines */
+            background-image: linear-gradient(#f0e6d2 1px, transparent 1px);
+            background-size: 100% 30px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(60, 40, 20, 0.1);
+            transform: rotate(-0.5deg);
+        }
+
+        .tape {
+            position: absolute;
+            height: 40px; width: 140px;
+            background-color: rgba(255, 253, 230, 0.8);
+            border-left: 2px dotted rgba(0,0,0,0.1);
+            border-right: 2px dotted rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 20;
+        }
+        .tape-top { top: -15px; left: 50%; transform: translateX(-50%) rotate(2deg); }
+
+        #journal-content {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+            background: rgba(255,255,255,0.95); 
+            padding: 30px;
+            border-radius: 5px;
+        }
+
+        /* Canvas Frame (The Live Demo) */
+        #demo-frame {
+            flex: 1.2;
+            height: 400px;
+            border: 3px solid #87CEEB; /* Soft Blue */
+            background: #87CEEB;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            transform: rotate(-1deg);
+            position: relative;
+            overflow: hidden;
+            border-radius: 4px;
+        }
+        
+        canvas { 
+            display: block; 
+            width: 100%; 
+            height: 100%;
+            cursor: grab;
+        }
+        canvas:active { cursor: grabbing; }
+
+        /* Text Side */
+        #text-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 { margin-top: 0; color: #E08DA6; font-size: 2.2rem; margin-bottom: 10px; }
+        .tags { font-size: 0.9rem; color: #888; font-style: italic; margin-bottom: 20px; }
+        p { font-size: 1.0rem; line-height: 1.6; margin-bottom: 20px; color: #555; }
+
+        /* --- 2. VIDEO SECTION --- */
+        #video-polaroid {
+            background: white;
+            padding: 15px 15px 50px 15px; /* Bottom padding for "polaroid" look */
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: rotate(1.5deg);
+            text-align: center;
+            width: 70%;
+            margin-top: 20px;
+        }
+        #video-polaroid video {
+            width: 100%;
+            border: 1px solid #ddd;
+        }
+        .caption {
+            font-family: 'Gloria Hallelujah', cursive;
+            margin-top: 15px;
+            color: #666;
+            font-size: 1.2rem;
+        }
+
+        /* --- 3. THE DOWNLOAD AREA --- */
+        #download-area {
+            position: relative;
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: #fff;
+            background: #E08DA6; /* Pink */
+            font-weight: bold;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+            border-radius: 50px;
+            cursor: none; pointer-events: auto;
+            transition: all 0.2s;
+            box-shadow: 0 5px 0px #b06d82;
+            border: 2px solid #fff;
+        }
+        .download-btn:hover { transform: translateY(3px); box-shadow: 0 2px 0px #b06d82; background: #ea9eb5; }
+        .download-btn:active { transform: translateY(5px); box-shadow: none; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            #journal-content { flex-direction: column; }
+            #demo-frame { width: 100%; height: 300px; transform: rotate(0deg); }
+            #video-polaroid { width: 95%; }
+        }
+    </style>
+</head>
+<body>
+
+    <svg id="svg-filters">
+        <defs>
+            <filter id="crayon-filter-small">
+                <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
+            </filter>
+            <filter id="crayon-filter-fill">
+                <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="2" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
+            </filter>
+        </defs>
+    </svg>
+
+    <div id="cursor-nebula">
+        <div class="nebula-blob" style="width: 100%; height: 100%; background: #E08DA6; top:0; left:0;"></div>
+        <div class="nebula-blob" style="width: 80%; height: 80%; background: #87CEEB; top:-10%; left:20%;"></div>
+    </div>
+
+    <div id="nav-controls">
+        <div class="nav-btn" onclick="window.location.href='portfolio.html'">
+            <svg class="icon-svg" viewBox="0 0 50 50">
+                <path d="M30 10 L15 25 L30 40" />
+                <path d="M15 25 L45 25" />
+            </svg>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <div id="journal-entry">
+            <div class="tape tape-top"></div> 
+            
+            <div id="journal-content">
+                
+                <div id="demo-frame">
+                    <canvas id="petCanvas"></canvas>
+                    <div id="loading" style="position:absolute; top:10px; left:10px; background:white; padding:5px; border-radius:4px; font-size:0.8rem;">
+                        Awaking Samoyed...
+                    </div>
+                </div>
+
+                <div id="text-content">
+                    <h1>Desktop Samoyed</h1>
+                    <div class="tags">#Python #Tkinter #InteractiveArt #PyScript</div>
+                    
+                    <p>
+                        Meet your new virtual companion! This project is a <strong>transparent desktop pet</strong> originally built with Python and Tkinter.
+                    </p>
+                    <p>
+                        The dog runs across your taskbar, sleeps when bored, and barks at your cursor. The version on the left is running live in your browser using <strong>WebAssembly</strong>.
+                    </p>
+                    <p style="font-size: 0.9rem; color: #E08DA6;">
+                        <strong>Try it:</strong> Click and drag the dog to move him around!
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="video-polaroid">
+            <div class="tape" style="top: -15px; left: 50%; transform: translateX(-50%) rotate(-2deg); width: 100px;"></div>
+            
+            <video controls>
+                <source src="samoyedvideo.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            <div class="caption">The original Python version running on MacBook</div>
+        </div>
+
+        <div id="download-area">
+    <a href="downloads/samoyed.py" class="download-btn" download>
+        
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        Download Source Code (.py)
+    </a>
+    
+    <p style="margin-top: 15px; font-size: 0.9rem; color: #888;">Requires Python 3 + Tkinter</p>
+</div>
+
+    </div>
+
+    <script type="py">
+        import asyncio
+        import random
+        from js import document, window
+        from pyodide.ffi import create_proxy
+
+        # --- SETUP ---
+        canvas = document.getElementById("petCanvas")
+        ctx = canvas.getContext("2d")
+
+        # Set canvas to match the demo-frame div size
+        def resize_canvas(event=None):
+            frame = document.getElementById("demo-frame")
+            canvas.width = frame.clientWidth
+            canvas.height = frame.clientHeight
+        
+        resize_canvas()
+        # Note: We don't need a window resize listener here as much because the div size is fixed in CSS, 
+        # but good practice if the div was responsive.
+
+        # --- SETTINGS ---
+        pixel_scale = 3  # Slightly smaller for web demo
+        grid_w = 26
+        grid_h = 24
+        dog_w = grid_w * pixel_scale
+        dog_h = grid_h * pixel_scale
+
+        state = {
+            "x": (canvas.width / 2) - (dog_w / 2),
+            "y": (canvas.height / 2) - (dog_h / 2),
+            "target_x": 0, "target_y": 0,
+            "current_state": "IDLE", "timer": 0,
+            "facing_right": True, "anim_index": 0,
+            "hearts": []
+        }
+
+        drag_data = { "is_dragging": False, "offset_x": 0, "offset_y": 0 }
+
+        colors = {
+            '1': '#1a1a1a', '2': '#ffffff', 
+            '3': '#ffb7c5', '4': '#d1d1d1', '5': '#ff69b4'
+        }
+
+        # --- SPRITES (Condensed for brevity - this works identically to previous code) ---
+        sprites = {}
+        sprites['idle'] = [
+            "..........................",".........111...111........","........12221.12221.......",".......1222221222221......","......122222222222221.....",".....12222222222222221....","....1222112222211222221...","...122222222122222222221..","..12222222211122222222221.","..12222222223222222222221.",".1222222222222222222222221","12222222222222222222222221","12222442222222222224422221","12222222222222222222222221","12222222222222222222222221","12222222222222222222222221","12222222222222222222222221","12222222222222222222222221","12222222222222222222222221",".122222222222222222222221.","..111111...........11111..","..........................","..........................",".........................."
+        ]
+        sprites['walk1'] = [
+            "..........................","......11..................",".....1221.................","....122221................","....121221...1111.........","....122221111222211.......","....1222222222222221......","....12244222222222221.....",".....12222222222222221....",".....12222222222222221....",".....122222222222222211...",".....1222222222222222221..",".....1222222222222222221..","......12222222222222221...","......1222222222222221....",".......112221...12221.....","........12221...12221.....",".........111.....111......","..........................","..........................","..........................","..........................","..........................",".........................."
+        ]
+        sprites['walk2'] = [
+            "..........................","......11..................",".....1221.................","....122221................","....121221...1111.........","....122221111222211.......","....1222222222222221......","....12244222222222221.....",".....12222222222222221....",".....12222222222222221....",".....122222222222222211...",".....1222222222222222221..",".....1222222222222222221..","......122222222222222211..","......12222222222222211...","........12221.12221.......",".........1221.1221........","..........11...11.........","..........................","..........................","..........................","..........................","..........................",".........................."
+        ]
+        sprites['bark'] = sprites['idle']
+        sprites['sleep'] = [
+            "..........................","..........................","..........................","..........................","..........................","..........................","......11...11.............",".....1221.1221...11...11..",".....1221.1221..1221.1221.","....12222222221.1221.1221.","...1222222222221222222221.","..12312222222222222222221.",".122212222222222222222221.",".121122222222222222222221.",".123222222222222222222221.","..1112222222222222222221..",".....111111111111111111...","..........................","..........................","..........................","..........................","..........................","..........................",".........................."
+        ]
+
+        def spawn_hearts(count):
+            cx, cy = state['x'] + (dog_w/2), state['y'] + (dog_h/2)
+            for i in range(count):
+                state['hearts'].append({'x':cx + random.randint(-20,20), 'y':cy+random.randint(-10,10), 'life':20, 'speed':random.randint(2,5)})
+
+        def on_mousedown(event):
+            rect = canvas.getBoundingClientRect()
+            mx = event.clientX - rect.left
+            my = event.clientY - rect.top
+            dx, dy = state['x'], state['y']
+            if dx <= mx <= dx+dog_w and dy <= my <= dy+dog_h:
+                drag_data['is_dragging'] = True
+                drag_data['offset_x'] = mx - dx
+                drag_data['offset_y'] = my - dy
+                state['current_state'] = "DRAG"
+                spawn_hearts(3)
+
+        def on_mousemove(event):
+            if drag_data['is_dragging']:
+                rect = canvas.getBoundingClientRect()
+                mx = event.clientX - rect.left
+                my = event.clientY - rect.top
+                state['x'] = mx - drag_data['offset_x']
+                state['y'] = my - drag_data['offset_y']
+                if random.random() < 0.3: spawn_hearts(1)
+
+        def on_mouseup(event):
+            if drag_data['is_dragging']:
+                drag_data['is_dragging'] = False
+                state['current_state'] = "IDLE"
+                state['timer'] = 20
+
+        canvas.addEventListener('mousedown', create_proxy(on_mousedown))
+        canvas.addEventListener('mousemove', create_proxy(on_mousemove))
+        window.addEventListener('mouseup', create_proxy(on_mouseup)) 
+
+        def draw_hearts():
+            ctx.fillStyle = colors['5']
+            sz = pixel_scale
+            active = []
+            for h in state['hearts']:
+                h['y'] -= h['speed']
+                h['life'] -= 1
+                if h['life'] > 0:
+                    active.append(h)
+                    hx, hy = h['x'], h['y']
+                    # Simple 3x3 heart shape
+                    ctx.fillRect(hx, hy, sz, sz) 
+                    ctx.fillRect(hx+2*sz, hy, sz, sz)
+                    ctx.fillRect(hx-sz, hy+sz, 5*sz, sz)
+                    ctx.fillRect(hx, hy+2*sz, 3*sz, sz)
+            state['hearts'] = active
+
+        def draw_dog(sprite_name):
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            grid = sprites.get(sprite_name, sprites['idle'])
+            start_x, start_y = int(state['x']), int(state['y'])
+            for r, row in enumerate(grid):
+                for c, char in enumerate(row):
+                    if char in colors:
+                        draw_c = c if state['facing_right'] else (grid_w - 1) - c
+                        ctx.fillStyle = colors[char]
+                        ctx.fillRect(start_x + (draw_c*pixel_scale), start_y + (r*pixel_scale), pixel_scale, pixel_scale)
+            if state['current_state'] == "SLEEP":
+                step = (state['anim_index']//10)%3
+                ctx.fillStyle = "#1a1a1a"; ctx.font = "16px Arial"
+                ctx.fillText("z", start_x + dog_w/2 + (step*8), start_y - (step*8))
+            draw_hearts()
+
+        async def main_loop():
+            document.getElementById("loading").style.display = "none"
+            while True:
+                if not drag_data['is_dragging']:
+                    if state['timer'] > 0: state['timer'] -= 1
+                    else:
+                        roll = random.random()
+                        margin = 20
+                        if state['current_state'] == "SLEEP":
+                            state['timer'] = 50 if roll < 0.8 else 20
+                            if roll >= 0.8: state['current_state'] = "IDLE"
+                        else:
+                            if roll < 0.4: state['current_state'], state['timer'] = "IDLE", 50
+                            elif roll < 0.7:
+                                state['current_state'] = "WALK"
+                                state['target_x'] = random.randint(margin, int(canvas.width) - margin - int(dog_w))
+                                state['target_y'] = random.randint(margin, int(canvas.height) - margin - int(dog_h))
+                                state['timer'] = 100
+                            elif roll < 0.9: state['current_state'], state['timer'] = "SLEEP", 100
+                            else: state['current_state'], state['timer'] = "BARK", 20
+
+                    if state['current_state'] == "WALK":
+                        speed = 2
+                        dx, dy = 0, 0
+                        if abs(state['target_x'] - state['x']) > speed: dx = speed if state['target_x'] > state['x'] else -speed
+                        if abs(state['target_y'] - state['y']) > speed: dy = speed if state['target_y'] > state['y'] else -speed
+                        state['x'] += dx
+                        state['y'] += dy
+                        if dx == 0 and dy == 0: state['current_state'], state['timer'] = "IDLE", 30
+                        if dx > 0: state['facing_right'] = True
+                        elif dx < 0: state['facing_right'] = False
+
+                state['anim_index'] += 1
+                curr = "idle"
+                if state['current_state'] == "WALK": curr = "walk1" if (state['anim_index']//5)%2==0 else "walk2"
+                elif state['current_state'] == "SLEEP": curr = "sleep"
+                elif state['current_state'] == "BARK": curr = "bark"
+                
+                draw_dog(curr)
+                await asyncio.sleep(0.033)
+
+        asyncio.ensure_future(main_loop())
+    </script>
+    
+    <script>
+        // Cursor Logic
+        const cursor = document.getElementById('cursor-nebula');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+</html>
