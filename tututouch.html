@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutu Touch | Ganling Zhou</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= BASE STYLES ================= */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            background-color: #F8F4E3; 
+            background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            cursor: none; 
+            color: #4a3b2a; 
+        }
+
+        /* Custom Cursor */
+        #cursor-nebula { position: fixed; top: 0; left: 0; width: 100px; height: 100px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); opacity: 0.9; }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; }
+        
+        /* Navigation Button */
+        #nav-controls { position: fixed; top: 30px; left: 40px; z-index: 100; }
+        .nav-btn {
+            cursor: none; pointer-events: auto;
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.8; transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-btn:hover { transform: scale(1.1); opacity: 1; }
+        .icon-svg { width: 100%; height: 100%; fill: none; stroke: #4a3b2a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ================= MAIN LAYOUT ================= */
+        #app-container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 100px 20px 100px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 60px; 
+            align-items: center;
+        }
+
+        /* --- THE SCRAPBOOK SHEET --- */
+        #journal-entry {
+            position: relative;
+            width: 100%;
+            background: #FDFBF7;
+            border: 1.5px solid #5c4b37;
+            border-radius: 12px;
+            padding: 50px 40px 40px 40px; /* Top padding for washi tape */
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(92, 75, 55, 0.06);
+            margin-top: 10px;
+        }
+
+        .washi-tape {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-1.5deg);
+            width: 150px;
+            height: 28px;
+            background-color: rgba(230, 199, 127, 0.35); /* Translucent gold washi tape */
+            border-left: 1px dashed rgba(0,0,0,0.06);
+            border-right: 1px dashed rgba(0,0,0,0.06);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        #journal-content {
+            display: flex;
+            gap: 40px;
+            align-items: flex-start;
+        }
+
+        /* Video Frame */
+        #video-frame {
+            flex: 1.2;
+            border: 1px solid rgba(92, 75, 55, 0.15);
+            box-shadow: 0 8px 24px rgba(92, 75, 55, 0.08);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+        }
+        
+        video { width: 100%; display: block; object-fit: cover; }
+
+        /* Text Side */
+        #text-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        h1 { 
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            margin-top: 0; 
+            color: #C06C3D; 
+            font-size: 2.5rem; 
+            margin-bottom: 10px; 
+        }
+        
+        .tags { 
+            font-family: 'Playfair Display', serif; 
+            font-style: italic;
+            font-weight: 600;
+            font-size: 0.95rem; 
+            color: #8c765c; 
+            margin-bottom: 20px; 
+        }
+        
+        p { 
+            font-size: 1rem; 
+            line-height: 1.7; 
+            margin-bottom: 20px;
+            color: #5c4b37;
+        }
+
+        .section-subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-weight: 600;
+            font-size: 1.2rem;
+            color: #C06C3D;
+            margin-top: 15px;
+            margin-bottom: 8px;
+        }
+
+        /* --- THE DOWNLOAD SAFE --- */
+        #download-safe {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            padding: 40px;
+            background: #FDFBF7;
+            border: 1.5px dashed rgba(92, 75, 55, 0.3); 
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            box-shadow: 0 8px 24px rgba(92, 75, 55, 0.04);
+            box-sizing: border-box;
+        }
+
+        #download-safe h2 { 
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            margin-top: 0; 
+            color: #C06C3D; 
+            font-size: 1.8rem; 
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            text-decoration: none;
+            color: #F8F4E3;
+            background: #C06C3D;
+            border: 1.5px solid #5c4b37;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            padding: 14px 30px;
+            cursor: none; pointer-events: auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(92, 75, 55, 0.15);
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+        }
+        .download-btn:hover { transform: translateY(-2px); background: #d67d4d; box-shadow: 0 8px 25px rgba(92, 75, 55, 0.25); }
+        .download-btn:active { transform: translateY(1px); }
+        
+        .safe-icon { width: 22px; height: 22px; stroke: #F8F4E3; fill: none; stroke-width: 2.2; }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            #journal-content { flex-direction: column; }
+            #video-frame { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cursor-nebula">
+        <div class="nebula-blob" style="width: 100%; height: 100%; background: #C06C3D; top:0; left:0;"></div>
+        <div class="nebula-blob" style="width: 80%; height: 80%; background: #D988A8; top:-10%; left:20%;"></div>
+    </div>
+
+    <div id="nav-controls">
+        <div class="nav-btn" onclick="window.location.href='portfolio.html'">
+            <svg class="icon-svg" viewBox="0 0 50 50">
+                <path d="M30 10 L15 25 L30 40" />
+                <path d="M15 25 L45 25" />
+            </svg>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <div id="journal-entry">
+            <div class="washi-tape"></div> 
+            
+            <div id="journal-content">
+                <div id="video-frame">
+                    <video controls width="100%" poster="tutucover.JPG">
+                        <source src="tututouch.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+
+                <div id="text-content">
+                    <h1>Tutu Touch</h1>
+                    <div class="tags">#eTextiles #CalmTechnology #Bluetooth #WebAudioAPI</div>
+                    
+                    <p>
+                        <strong>Tutu Touch</strong> is an interactive wool scarf knitted with conductive and insulating yarns. Interfacing with a custom web application via a Bluetooth-enabled microcontroller, the scarf acts as a soft, approachable sensor that triggers deep, calming drone soundscapes the moment it is touched.
+                    </p>
+
+                    <div class="section-subtitle">Calm Technology Design Philosophy</div>
+                    <p>
+                        Moving away from typical robotics and hard plastic devices, Tutu Touch relies on Mark Weiser's philosophy of **Calm Technology**—the design principle that technology should inform and comfort us without demanding our constant, active attention. By hiding all circuitry inside the chunky knitted fibers, it strips away the cold, rigid feel of normal gadgets to sit quietly in the background as a comforting sensory blanket.
+                    </p>
+
+                    <div class="section-subtitle">Hardware & Capacitive touch Prototyping</div>
+                    <p>
+                        The computational core utilizes an **Arduino Nano ESP32**. During prototyping, reading the hybrid fabric as a variable resistor proved highly erratic due to the bouncy nature of wool loops. The breakthrough involved treating the human body as a capacitor: by removing the pull-down resistors and implementing the ESP32's native capacitive touch function (`touchRead()`), the system successfully ignores mechanical noise in favor of highly sensitive contact spikes.
+                    </p>
+
+                    <div class="section-subtitle">Dynamic Auto-Calibration</div>
+                    <p>
+                        To counteract environmental moisture and hand sweat from causing baseline drift (which would result in a frozen "touched" state), a C++ **Exponential Moving Average (EMA)** algorithm constantly recalibrates baseline capacitance in real time. Running with a 50ms loop delay and a smoothing coefficient (`alpha = 0.05`), the software continuously updates its baseline against the last 2 seconds of ambient data.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="download-safe">
+            <h2>Explore the Knit Synth</h2>
+            <p style="font-size: 1.1rem; color: #666; max-width: 600px; margin-bottom: 25px;">
+                Tutu Touch bridges the physical and digital boundaries through sound. Download the detailed engineering paper or try the live web synthesizer.
+            </p>
+            
+            <div style="display: flex; gap: 20px; justify-content: center; flex-wrap: wrap;">
+                <a href="TutuTouch.pdf" class="download-btn" target="_blank">
+                    <svg class="safe-icon" viewBox="0 0 24 24">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Download Project Paper (PDF)
+                </a>
+                
+                <a href="https://ganlingz.github.io/TutuTouch/" class="download-btn" target="_blank">
+                    <svg class="safe-icon" viewBox="0 0 24 24">
+                        <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h6"></path>
+                        <polyline points="15 3 21 3 21 9"></polyline>
+                        <line x1="10" y1="14" x2="21" y2="3"></line>
+                    </svg>
+                    Try the Knit Synth (Web App)
+                </a>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- CURSOR LOGIC ---
+        const cursor = document.getElementById('cursor-nebula');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+</html>
