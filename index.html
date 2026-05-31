@@ -5,12 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ganling Zhou | Warm Tech Galaxy</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Noto+Serif+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
     
     <style>
         /* ================= Base Settings ================= */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #F8F4E3; background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); font-family: 'Gloria Hallelujah', cursive; cursor: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #F8F4E3; background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); font-family: 'Plus Jakarta Sans', sans-serif; cursor: none; color: #4a3b2a; }
         
         #intro-container { 
             position: absolute; top: 48%; 
@@ -27,43 +26,68 @@
 
         /* ================= Typography ================= */
         .watercolor-text-cn {
-            font-family: 'ZCOOL KuaiLe', cursive; 
+            font-family: 'Noto Serif SC', serif; 
             text-anchor: middle; dominant-baseline: middle;
-            font-size: 130px; 
-            fill: #AECFE8; 
-            filter: url(#watercolor-filter);
-            opacity: 0.6; 
+            font-size: 140px; 
+            font-weight: 700;
+            fill: rgba(192, 108, 61, 0.12); 
+            opacity: 0.85; 
             mix-blend-mode: multiply; 
+            letter-spacing: 12px;
         }
 
-        .crayon-text-en { 
-            font-family: 'Gloria Hallelujah', cursive; text-anchor: middle; dominant-baseline: middle; 
-            font-size: 85px; letter-spacing: -2px; 
-        }
-        .crayon-outline-text { 
-            fill: none; stroke: #1a1a1a; stroke-width: 4px; stroke-linecap: round; stroke-linejoin: round; 
-            filter: url(#crayon-filter-stroke); opacity: 0.95; 
-        }
-        .crayon-fill-text { 
-            fill: #333; stroke: none; filter: url(#crayon-filter-fill); opacity: 0.9; 
+        .main-title-text { 
+            font-family: 'Playfair Display', serif; 
+            font-style: italic;
+            text-anchor: middle; 
+            dominant-baseline: middle; 
+            font-size: 82px; 
+            font-weight: 700; 
+            fill: #4a3b2a; 
+            letter-spacing: 2px;
         }
 
         .subtitle-text {
-            font-family: 'Gloria Hallelujah', cursive;
-            font-size: 24px;
-            fill: #C06C3D;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 19px;
+            fill: #8c765c;
             text-anchor: middle;
             dominant-baseline: middle;
-            font-weight: bold;
-            filter: url(#crayon-filter-small);
+            font-weight: 600;
+            letter-spacing: 1.5px;
         }
 
-        /* ================= Button ================= */
-        #enter-btn { 
-            margin-top: -15px; 
-            padding: 1rem 3rem; font-size: 1.2rem; background: #C06C3D; color: white; border: 4px solid #333; border-radius: 30px; font-family: 'Gloria Hallelujah', cursive; cursor: none; transform: rotate(-2deg); filter: url(#crayon-filter-small); pointer-events: auto; transition: transform 0.3s ease, background-color 0.3s ease; 
+        /* ================= Button Group ================= */
+        #btn-group {
+            margin-top: 30px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 0 20px;
+            pointer-events: auto;
         }
-        #enter-btn:hover { transform: rotate(1deg) scale(1.05); background-color: #D97D4A; }
+        .menu-btn { 
+            padding: 0.9rem 2.2rem; 
+            font-size: 1.1rem; 
+            font-weight: 600;
+            font-family: 'Playfair Display', serif; 
+            font-style: italic;
+            background: #C06C3D; 
+            color: #F8F4E3; 
+            border: 1.5px solid #5c4b37; 
+            border-radius: 4px; 
+            cursor: none; 
+            pointer-events: auto; 
+            box-shadow: 0 4px 15px rgba(92, 75, 55, 0.15);
+            transition: all 0.3s ease; 
+        }
+        .menu-btn:hover { 
+            transform: scale(1.05) translateY(-2px); 
+            box-shadow: 0 8px 25px rgba(92, 75, 55, 0.25);
+            background: #d67d4d;
+        }
 
         /* ================= Audio Controls ================= */
         #audio-control {
@@ -82,18 +106,18 @@
         }
         
         .speaker-icon {
-            width: 70px; 
-            height: 70px;
+            width: 60px; 
+            height: 60px;
             fill: none;
-            stroke: #333;
-            stroke-width: 2.5; 
+            stroke: #4a3b2a;
+            stroke-width: 2; 
             stroke-linecap: round;
             stroke-linejoin: round;
-            filter: url(#crayon-filter-small);
+            transition: stroke 0.3s;
         }
         
         .sound-wave { display: block; stroke: #C06C3D; transition: opacity 0.2s; }
-        .sound-off-line { display: none; stroke: #D988A8; stroke-width: 3; transition: opacity 0.2s; }
+        .sound-off-line { display: none; stroke: #D988A8; stroke-width: 2.5; transition: opacity 0.2s; }
         
         #audio-control.muted .sound-wave { display: none; }
         #audio-control.muted .sound-off-line { display: block; }
@@ -101,8 +125,8 @@
         /* ================= Visuals ================= */
         .star-element { position: absolute; top: 0; left: 0; will-change: transform; z-index: 1; pointer-events: none; }
         .star-svg-container { width: 100%; height: 100%; overflow: visible; transform: skew(0deg) scale(1, 1); }
-        .star-outline { fill: none; stroke: #222; stroke-width: 16px; stroke-linecap: round; stroke-linejoin: round; filter: url(#crayon-filter-stroke); }
-        .star-fill { fill: var(--star-color); stroke: none; transform: scale(0.92); transform-origin: center; filter: url(#crayon-filter-fill); opacity: 0.85; }
+        .star-outline { fill: none; stroke: #4a3b2a; stroke-width: 8px; stroke-linecap: round; stroke-linejoin: round; }
+        .star-fill { fill: var(--star-color); stroke: none; transform: scale(0.94); transform-origin: center; opacity: 0.9; }
         
         /* Optimized Cursor CSS */
         #cursor-nebula { 
@@ -122,11 +146,10 @@
             /* Removed filter here to fix LAG */
             box-shadow: 0 0 15px rgba(0,0,0,0.1);
         }
-        #svg-filters { position: absolute; width: 0; height: 0; }
         
         @media (max-width: 768px) { 
-            .crayon-text-en { font-size: 50px; } 
-            .watercolor-text-cn { font-size: 80px; } 
+            .main-title-text { font-size: 50px; } 
+            .watercolor-text-cn { font-size: 80px; letter-spacing: 6px; } 
             .title-svg-container { min-height: 200px; } 
             .speaker-icon { width: 50px; height: 50px; } 
         }
@@ -140,28 +163,6 @@
     <audio id="sfx-star" preload="auto">
         <source src="star_effect.wav" type="audio/wav">
     </audio>
-
-    <svg id="svg-filters">
-        <defs>
-            <filter id="crayon-filter-stroke">
-                <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="3" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" />
-            </filter>
-            <filter id="crayon-filter-fill">
-                <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="2" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
-            </filter>
-            <filter id="watercolor-filter">
-                <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="5" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="15" />
-                <feGaussianBlur stdDeviation="2.5" />
-            </filter>
-            <filter id="crayon-filter-small">
-                <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="1" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
-            </filter>
-        </defs>
-    </svg>
 
     <div id="cursor-nebula">
         <div class="nebula-blob" style="width: 100%; height: 100%; background: #C06C3D; top:0; left:0;"></div>
@@ -180,21 +181,24 @@
 
     <div id="intro-container">
         <svg class="title-svg-container" viewBox="0 0 800 250" preserveAspectRatio="xMidYMid meet">
-            <text x="50%" y="50%" class="watercolor-text-cn">周干龄</text>
-            <text x="50%" y="50%" class="crayon-text-en crayon-fill-text">GANLING ZHOU</text>
-            <text x="50%" y="50%" class="crayon-text-en crayon-outline-text">GANLING ZHOU</text>
+            <text x="50%" y="52%" class="watercolor-text-cn">周干龄</text>
+            <text x="50%" y="50%" class="main-title-text">GANLING ZHOU</text>
             <text x="50%" y="82%" class="subtitle-text">Warm Tech / Audio / Code & Chaos</text>
         </svg>
         
-        <button id="enter-btn" onclick="goToPortfolio()">Enter My World</button>
+        <div id="btn-group">
+            <button class="menu-btn" onclick="navigateTo('portfolio.html')">Portfolio</button>
+            <button class="menu-btn" onclick="navigateTo('resume.html')">My Resume</button>
+            <button class="menu-btn" onclick="navigateTo('contact.html')">Connect With Me</button>
+        </div>
     </div>
 
     <script>
         // ================= AUDIO LOGIC =================
         const bgMusic = document.getElementById('bg-music');
         const sfxStar = document.getElementById('sfx-star');
-        const audioControl = document.getElementById('audio-control');
-        const enterBtn = document.getElementById('enter-btn');
+                const audioControl = document.getElementById('audio-control');
+        const menuBtns = document.querySelectorAll('.menu-btn');
         
         let isMusicOn = false; 
         let fadeInterval = null;
@@ -235,19 +239,19 @@
             }
         }
 
-        enterBtn.addEventListener('mouseenter', () => {
-            if (isMusicOn) {
-                sfxStar.currentTime = 0;
-                sfxStar.volume = 0.6;
-                sfxStar.play().catch(e => {});
-            }
+        menuBtns.forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                if (isMusicOn) {
+                    sfxStar.currentTime = 0;
+                    sfxStar.volume = 0.6;
+                    sfxStar.play().catch(e => {});
+                }
+            });
         });
         
-       function goToPortfolio() {
+        function navigateTo(targetUrl) {
             // Save Stars before leaving!
             saveStars();
-
-            const targetUrl = 'portfolio.html'; 
 
             if (isMusicOn) {
                 if (fadeInterval) clearInterval(fadeInterval);
@@ -384,13 +388,15 @@
             stars.push(new Star());
         }
 
-        enterBtn.addEventListener('mouseenter', () => {
-            const rect = enterBtn.getBoundingClientRect();
-            const btnCenterX = rect.left + rect.width / 2;
-            const btnCenterY = rect.top + rect.height / 2;
-            const offsetX = (Math.random() - 0.5) * 50;
-            const offsetY = (Math.random() - 0.5) * 50;
-            stars.push(new Star(btnCenterX + offsetX, btnCenterY + offsetY));
+        menuBtns.forEach(btn => {
+            btn.addEventListener('mouseenter', () => {
+                const rect = btn.getBoundingClientRect();
+                const btnCenterX = rect.left + rect.width / 2;
+                const btnCenterY = rect.top + rect.height / 2;
+                const offsetX = (Math.random() - 0.5) * 50;
+                const offsetY = (Math.random() - 0.5) * 50;
+                stars.push(new Star(btnCenterX + offsetX, btnCenterY + offsetY));
+            });
         });
 
         function animate() {

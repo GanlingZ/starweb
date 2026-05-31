@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume | Ganling Zhou</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Noto+Serif+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* ================= BASE STYLES ================= */
+        body, html { 
+            margin: 0; padding: 0; width: 100%; 
+            overflow-x: hidden; 
+            overflow-y: auto; 
+            background-color: #F8F4E3; 
+            background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
+            cursor: none; 
+            color: #4a3b2a; 
+        }
+
+        /* Custom Cursor */
+        #cursor-nebula { position: fixed; top: 0; left: 0; width: 100px; height: 100px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); opacity: 0.9; }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; }
+        
+        /* Navigation Button */
+        #nav-controls { position: fixed; top: 30px; left: 40px; z-index: 100; }
+        .nav-btn {
+            cursor: none; pointer-events: auto;
+            width: 60px; height: 60px;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0.8; transition: transform 0.2s, opacity 0.2s;
+        }
+        .nav-btn:hover { transform: scale(1.1); opacity: 1; }
+        .icon-svg { width: 100%; height: 100%; fill: none; stroke: #4a3b2a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+        /* ================= MAIN LAYOUT ================= */
+        #app-container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 100px 20px 100px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px; 
+            align-items: center;
+        }
+
+        /* --- THE SCRAPBOOK SHEET --- */
+        #resume-sheet {
+            position: relative;
+            width: 100%;
+            background: #FDFBF7;
+            border: 1.5px solid #5c4b37;
+            border-radius: 12px;
+            padding: 60px 50px 50px 50px; /* Top padding for washi tape */
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(92, 75, 55, 0.06);
+            margin-top: 10px;
+        }
+
+        .washi-tape {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-1.5deg);
+            width: 160px;
+            height: 28px;
+            background-color: rgba(224, 141, 166, 0.35); /* Translucent dusty rose washi tape */
+            border-left: 1px dashed rgba(0,0,0,0.06);
+            border-right: 1px dashed rgba(0,0,0,0.06);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        /* Typography */
+        h1 { 
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            margin: 0 0 5px 0; 
+            color: #C06C3D; 
+            font-size: 2.8rem; 
+            text-align: center;
+        }
+        
+        .subtitle {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.15rem;
+            color: #8c765c;
+            text-align: center;
+            margin-bottom: 40px;
+            font-weight: 500;
+        }
+
+        h2 {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.6rem;
+            color: #C06C3D;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(92, 75, 55, 0.15);
+            padding-bottom: 5px;
+        }
+
+        /* CV Structure */
+        .cv-item {
+            margin-bottom: 25px;
+        }
+
+        .cv-meta {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: #4a3b2a;
+            margin-bottom: 5px;
+        }
+
+        .cv-date {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            color: #8c765c;
+            font-weight: 500;
+        }
+
+        .cv-desc {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #5c4b37;
+            margin: 0;
+        }
+
+        .cv-desc-list {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #5c4b37;
+            margin: 5px 0 0 0;
+            padding-left: 20px;
+        }
+        .cv-desc-list li {
+            margin-bottom: 5px;
+        }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .skills-category {
+            font-size: 0.95rem;
+            line-height: 1.6;
+            color: #5c4b37;
+        }
+
+        .skills-category strong {
+            color: #C06C3D;
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.05rem;
+        }
+
+        /* --- PDF Slot Outline --- */
+        #pdf-placeholder-slot {
+            margin-top: 40px;
+            padding: 30px;
+            background: #F8F4E3;
+            border: 1.5px dashed rgba(92, 75, 55, 0.3);
+            border-radius: 8px;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        #pdf-placeholder-slot p {
+            margin: 0 0 20px 0;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            color: #5c4b37;
+        }
+
+        .download-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            color: #F8F4E3;
+            background: #C06C3D;
+            border: 1.5px solid #5c4b37;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 1.05rem;
+            padding: 12px 28px;
+            cursor: none; pointer-events: auto;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(92, 75, 55, 0.12);
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+        }
+        .download-btn:hover { transform: translateY(-2px); background: #d67d4d; box-shadow: 0 6px 18px rgba(92, 75, 55, 0.2); }
+        .download-btn:active { transform: translateY(1px); }
+
+        .btn-icon { width: 20px; height: 20px; stroke: #F8F4E3; fill: none; stroke-width: 2.5; }
+
+        @media (max-width: 768px) {
+            #resume-sheet { padding: 40px 25px 30px 25px; }
+            .cv-meta { flex-direction: column; gap: 2px; }
+            h1 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="cursor-nebula">
+        <div class="nebula-blob" style="width: 100%; height: 100%; background: #C06C3D; top:0; left:0;"></div>
+        <div class="nebula-blob" style="width: 80%; height: 80%; background: #D988A8; top:-10%; left:20%;"></div>
+        <div class="nebula-blob" style="width: 70%; height: 70%; background: #E6C77F; top:20%; left:-10%;"></div>
+    </div>
+
+    <div id="nav-controls">
+        <div class="nav-btn" onclick="window.location.href='index.html'">
+            <svg class="icon-svg" viewBox="0 0 50 50">
+                <path d="M30 10 L15 25 L30 40" />
+                <path d="M15 25 L45 25" />
+            </svg>
+        </div>
+    </div>
+
+    <div id="app-container">
+        
+        <div id="resume-sheet">
+            <div class="washi-tape"></div>
+            
+            <h1>Ganling Zhou</h1>
+            <div class="subtitle">917-856-1527 &nbsp;|&nbsp; ganlingzhou@outlook.com &nbsp;|&nbsp; New York, New York</div>
+            
+            <h2>Education</h2>
+            
+            <div class="cv-item">
+                <div class="cv-meta">
+                    <span>New York University (New York, NY) — Bachelor of Music in Music Technology</span>
+                    <span class="cv-date">Sept 2022 - May 2026</span>
+                </div>
+                <p class="cv-desc">
+                    Minors: Mathematics & Computer Science &nbsp;|&nbsp; GPA: 3.6/4.0
+                </p>
+            </div>
+
+            <h2>Skills</h2>
+            
+            <div class="skills-grid">
+                <div class="skills-category">
+                    <strong>Audio & Video Production</strong><br>
+                    Digital Live Sound Mixers, Signal Routing, Multi-channel Audio Systems, Pro Tools, Logic Pro, Max/MSP, Adobe Premiere
+                </div>
+                <div class="skills-category">
+                    <strong>Hardware & Fabrication</strong><br>
+                    Equipment Inventory Management, Hardware Troubleshooting, Soldering, CAD, PCB Design
+                </div>
+                <div class="skills-category">
+                    <strong>Software & Systems</strong><br>
+                    Google Workspace, Microsoft Excel/Word, Mac OS, Windows
+                </div>
+                <div class="skills-category">
+                    <strong>Languages</strong><br>
+                    English (Fluent), Mandarin (Fluent), French (B2 - Professional Working Proficiency)
+                </div>
+            </div>
+
+            <h2>Work Experience</h2>
+            
+            <div class="cv-item">
+                <div class="cv-meta">
+                    <span>Intern @ Harvestworks (New York, NY)</span>
+                    <span class="cv-date">May 2025 - Present</span>
+                </div>
+                <ul class="cv-desc-list">
+                    <li>Collaborate closely with contemporary artists to support the technical execution and maintenance of the Governor’s Island Time-Based Arts exhibition.</li>
+                    <li>Install, configure, and troubleshoot multi-channel audio/video systems and interactive hardware installations based on artistic requirements.</li>
+                    <li>Run sound checks, manage signal flows, and engineer live audio setups for diverse outdoor and indoor live performances.</li>
+                </ul>
+            </div>
+
+            <div class="cv-item">
+                <div class="cv-meta">
+                    <span>Student Worker @ Tisch Production Center, New York University</span>
+                    <span class="cv-date">Aug 2023 - May 2025</span>
+                </div>
+                <ul class="cv-desc-list">
+                    <li>Managed and tracked an extensive inventory of film and audio equipment using Excel, ensuring seamless rental operations and access for hundreds of students and faculty.</li>
+                    <li>Performed technical maintenance and hardware troubleshooting on production devices, including soldering cables and repairing headphone sets under tight deadlines.</li>
+                    <li>Coordinated load-in and load-out logistics for student productions, maintaining high standards of organization and space efficiency.</li>
+                </ul>
+            </div>
+
+            <div class="cv-item">
+                <div class="cv-meta">
+                    <span>Venue Assistant @ Live Music Venue (Guangzhou, China)</span>
+                    <span class="cv-date">June 2024 - Aug 2024</span>
+                </div>
+                <ul class="cv-desc-list">
+                    <li>Managed on-site technical production and stage logistics for live music performances in a fast-paced environment.</li>
+                    <li>Provided direct hospitality and technical support to international musicians, resolving event-day issues smoothly using multi-lingual communication.</li>
+                </ul>
+            </div>
+
+            <div class="cv-item">
+                <div class="cv-meta">
+                    <span>Studio Tech @ 8th Floor Education Building, New York University</span>
+                    <span class="cv-date">Jan 2023 - May 2023</span>
+                </div>
+                <ul class="cv-desc-list">
+                    <li>Maintained professional recording studios, multimedia classrooms, and AV infrastructure to ensure optimal daily operations.</li>
+                    <li>Delivered real-time technical support and AV/IT solutions for faculty and students during hybrid classes, live streams, and recording sessions.</li>
+                    <li>Drafted clear, visual workflow and signal-flow diagrams to streamline system access and troubleshooting for studio users.</li>
+                </ul>
+            </div>
+
+            <!-- PDF Attachment Area -->
+            <div id="pdf-placeholder-slot">
+                <p>
+                    A print-ready PDF copy of my full professional resume is now available for viewing and download.
+                </p>
+                
+                <div style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                    <a href="Ganling_Zhou_Resume.pdf" class="download-btn" target="_blank">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                        View PDF
+                    </a>
+                    
+                    <a href="Ganling_Zhou_Resume.pdf" class="download-btn" download="Ganling_Zhou_Resume.pdf">
+                        <svg class="btn-icon" viewBox="0 0 24 24">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Download PDF
+                    </a>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <script>
+        // --- CURSOR LOGIC ---
+        const cursor = document.getElementById('cursor-nebula');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px';
+            cursor.style.top = e.clientY + 'px';
+        });
+    </script>
+</body>
+</html>

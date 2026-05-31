@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>&lt;Desktop Samoyed | Interactive Project</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Gloria+Hallelujah&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://pyscript.net/releases/2023.05.1/pyscript.css" />
     <script defer src="https://pyscript.net/releases/2023.05.1/pyscript.js"></script>
     
@@ -17,15 +17,14 @@
             overflow-y: auto; 
             background-color: #F8F4E3; 
             background-image: url('https://www.transparenttextures.com/patterns/cream-paper.png'); 
-            font-family: 'Gloria Hallelujah', cursive; 
+            font-family: 'Plus Jakarta Sans', sans-serif; 
             cursor: none; 
             color: #4a3b2a; 
         }
 
         /* Custom Cursor */
         #cursor-nebula { position: fixed; top: 0; left: 0; width: 60px; height: 60px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); opacity: 0.8; }
-        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; filter: url(#crayon-filter-fill); }
-        #svg-filters { position: absolute; width: 0; height: 0; }
+        .nebula-blob { position: absolute; border-radius: 50%; mix-blend-mode: multiply; }
 
         /* Navigation Button */
         #nav-controls { position: fixed; top: 30px; left: 40px; z-index: 100; }
@@ -36,7 +35,7 @@
             opacity: 0.8; transition: transform 0.2s, opacity 0.2s;
         }
         .nav-btn:hover { transform: scale(1.1); opacity: 1; }
-        .icon-svg { width: 100%; height: 100%; fill: none; stroke: #4a3b2a; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#crayon-filter-small); }
+        .icon-svg { width: 100%; height: 100%; fill: none; stroke: #4a3b2a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
         /* ================= MAIN LAYOUT ================= */
         #app-container {
@@ -52,49 +51,51 @@
 
         /* --- 1. THE JOURNAL ENTRY (Live Demo + Text) --- */
         #journal-entry {
-            width: 100%;
-            background: #fff;
-            border: 2px solid #5c4b37;
-            padding: 40px;
-            /* Notebook paper lines */
-            background-image: linear-gradient(#f0e6d2 1px, transparent 1px);
-            background-size: 100% 30px;
             position: relative;
-            box-shadow: 0 10px 20px rgba(60, 40, 20, 0.1);
-            transform: rotate(-0.5deg);
+            width: 100%;
+            background: #FDFBF7;
+            border: 1.5px solid #5c4b37;
+            border-radius: 12px;
+            padding: 50px 40px 40px 40px; /* Top padding for washi tape */
+            box-sizing: border-box;
+            box-shadow: 0 8px 24px rgba(92, 75, 55, 0.06);
+            margin-top: 10px;
+        }
+
+        .washi-tape {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-1deg);
+            width: 140px;
+            height: 24px;
+            background-color: rgba(224, 141, 166, 0.35); /* Translucent dusty rose washi tape */
+            border-left: 1px dashed rgba(0,0,0,0.06);
+            border-right: 1px dashed rgba(0,0,0,0.06);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            z-index: 15;
         }
 
         .tape {
-            position: absolute;
-            height: 40px; width: 140px;
-            background-color: rgba(255, 253, 230, 0.8);
-            border-left: 2px dotted rgba(0,0,0,0.1);
-            border-right: 2px dotted rgba(0,0,0,0.1);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            z-index: 20;
+            display: none;
         }
-        .tape-top { top: -15px; left: 50%; transform: translateX(-50%) rotate(2deg); }
 
         #journal-content {
             display: flex;
             gap: 40px;
             align-items: flex-start;
-            background: rgba(255,255,255,0.95); 
-            padding: 30px;
-            border-radius: 5px;
         }
 
         /* Canvas Frame (The Live Demo) */
         #demo-frame {
             flex: 1.2;
             height: 400px;
-            border: 3px solid #87CEEB; /* Soft Blue */
+            border: 1px solid rgba(92, 75, 55, 0.15);
             background: #87CEEB;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-            transform: rotate(-1deg);
+            box-shadow: 0 8px 24px rgba(92, 75, 55, 0.08);
             position: relative;
             overflow: hidden;
-            border-radius: 4px;
+            border-radius: 8px;
         }
         
         canvas { 
@@ -113,9 +114,29 @@
             justify-content: center;
         }
 
-        h1 { margin-top: 0; color: #E08DA6; font-size: 2.2rem; margin-bottom: 10px; }
-        .tags { font-size: 0.9rem; color: #888; font-style: italic; margin-bottom: 20px; }
-        p { font-size: 1.0rem; line-height: 1.6; margin-bottom: 20px; color: #555; }
+        h1 { 
+            font-family: 'Playfair Display', serif;
+            font-weight: 700;
+            margin-top: 0; 
+            color: #E08DA6; 
+            font-size: 2.2rem; 
+            margin-bottom: 10px; 
+        }
+        .tags { 
+            font-family: 'Playfair Display', serif; 
+            font-style: italic;
+            font-weight: 600;
+            font-size: 0.95rem; 
+            color: #E08DA6; 
+            opacity: 0.85;
+            margin-bottom: 20px; 
+        }
+        p { 
+            font-size: 1rem; 
+            line-height: 1.6; 
+            margin-bottom: 20px; 
+            color: #5c4b37; 
+        }
 
         /* --- 2. VIDEO SECTION --- */
         #video-polaroid {
@@ -132,7 +153,7 @@
             border: 1px solid #ddd;
         }
         .caption {
-            font-family: 'Gloria Hallelujah', cursive;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             margin-top: 15px;
             color: #666;
             font-size: 1.2rem;
@@ -151,19 +172,21 @@
             align-items: center;
             gap: 15px;
             text-decoration: none;
-            color: #fff;
+            color: #F8F4E3;
             background: #E08DA6; /* Pink */
-            font-weight: bold;
-            font-size: 1.2rem;
-            padding: 15px 30px;
-            border-radius: 50px;
+            border: 1.5px solid #5c4b37;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            padding: 16px 36px;
             cursor: none; pointer-events: auto;
-            transition: all 0.2s;
-            box-shadow: 0 5px 0px #b06d82;
-            border: 2px solid #fff;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(224, 141, 166, 0.15);
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
         }
-        .download-btn:hover { transform: translateY(3px); box-shadow: 0 2px 0px #b06d82; background: #ea9eb5; }
-        .download-btn:active { transform: translateY(5px); box-shadow: none; }
+        .download-btn:hover { transform: translateY(-2px); background: #ea9eb5; box-shadow: 0 8px 25px rgba(224, 141, 166, 0.25); }
+        .download-btn:active { transform: translateY(1px); }
 
         /* Responsive */
         @media (max-width: 900px) {
@@ -174,19 +197,6 @@
     </style>
 </head>
 <body>
-
-    <svg id="svg-filters">
-        <defs>
-            <filter id="crayon-filter-small">
-                <feTurbulence type="fractalNoise" baseFrequency="0.5" numOctaves="1" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="2" />
-            </filter>
-            <filter id="crayon-filter-fill">
-                <feTurbulence type="fractalNoise" baseFrequency="0.12" numOctaves="2" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="4" />
-            </filter>
-        </defs>
-    </svg>
 
     <div id="cursor-nebula">
         <div class="nebula-blob" style="width: 100%; height: 100%; background: #E08DA6; top:0; left:0;"></div>
@@ -205,7 +215,7 @@
     <div id="app-container">
         
         <div id="journal-entry">
-            <div class="tape tape-top"></div> 
+            <div class="washi-tape"></div> 
             
             <div id="journal-content">
                 
