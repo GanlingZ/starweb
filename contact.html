@@ -180,13 +180,14 @@
         /* ================= Custom Cursor ================= */
         #cursor-nebula {
             position: fixed;
+            top: 0; left: 0;
             pointer-events: none;
             z-index: 9999;
-            width: 300px; height: 300px;
+            width: 100px; height: 100px;
             transform: translate(-50%, -50%);
             mix-blend-mode: multiply;
             transition: opacity 0.3s;
-            opacity: 0.6;
+            opacity: 0.9;
         }
         .nebula-blob {
             position: absolute;
@@ -224,11 +225,11 @@
         <div class="contact-card">
             <div class="washi-tape"></div>
             
-            <form id="contact-form" action="https://api.web3forms.com/submit" method="POST">
+            <form id="contact-form">
                 <!-- Replace with your Access Key -->
                 <input type="hidden" name="access_key" value="894ef2e6-0b5b-4eb4-892d-84c86fb9cb82">
-                <!-- Redirect back to the form or a success page -->
-                <input type="hidden" name="redirect" value="https://web3forms.com/success">
+                <!-- Prevent default redirect -->
+                <input type="checkbox" name="botcheck" style="display: none;">
                 
                 <div class="form-group">
                     <label for="contact-info">Your email or phone</label>
@@ -251,6 +252,41 @@
         function goBackHome() {
             window.location.href = 'index.html';
         }
+
+        const form = document.getElementById('contact-form');
+        const formStatus = document.getElementById('form-status');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            formStatus.textContent = "Sending...";
+
+            const formData = new FormData(form);
+            const object = Object.fromEntries(formData);
+            const json = JSON.stringify(object);
+
+            fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: json
+            })
+            .then(async (response) => {
+                let json = await response.json();
+                if (response.status == 200) {
+                    formStatus.textContent = "Thank you! I will contact you back in 2-3 business days.";
+                    form.reset();
+                } else {
+                    console.log(response);
+                    formStatus.textContent = json.message || "Something went wrong. Please try again.";
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                formStatus.textContent = "Something went wrong! Please try again later.";
+            });
+        });
 
         // Custom Cursor Logic
         const cursorNebula = document.getElementById('cursor-nebula');
