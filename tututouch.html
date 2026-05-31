@@ -226,21 +226,6 @@
                     <p>
                         <strong>Tutu Touch</strong> is an interactive wool scarf knitted with conductive and insulating yarns. Interfacing with a custom web application via a Bluetooth-enabled microcontroller, the scarf acts as a soft, approachable sensor that triggers deep, calming drone soundscapes the moment it is touched.
                     </p>
-
-                    <div class="section-subtitle">Calm Technology Design Philosophy</div>
-                    <p>
-                        Moving away from typical robotics and hard plastic devices, Tutu Touch relies on Mark Weiser's philosophy of **Calm Technology**—the design principle that technology should inform and comfort us without demanding our constant, active attention. By hiding all circuitry inside the chunky knitted fibers, it strips away the cold, rigid feel of normal gadgets to sit quietly in the background as a comforting sensory blanket.
-                    </p>
-
-                    <div class="section-subtitle">Hardware & Capacitive touch Prototyping</div>
-                    <p>
-                        The computational core utilizes an **Arduino Nano ESP32**. During prototyping, reading the hybrid fabric as a variable resistor proved highly erratic due to the bouncy nature of wool loops. The breakthrough involved treating the human body as a capacitor: by removing the pull-down resistors and implementing the ESP32's native capacitive touch function (`touchRead()`), the system successfully ignores mechanical noise in favor of highly sensitive contact spikes.
-                    </p>
-
-                    <div class="section-subtitle">Dynamic Auto-Calibration</div>
-                    <p>
-                        To counteract environmental moisture and hand sweat from causing baseline drift (which would result in a frozen "touched" state), a C++ **Exponential Moving Average (EMA)** algorithm constantly recalibrates baseline capacitance in real time. Running with a 50ms loop delay and a smoothing coefficient (`alpha = 0.05`), the software continuously updates its baseline against the last 2 seconds of ambient data.
-                    </p>
                 </div>
             </div>
         </div>
